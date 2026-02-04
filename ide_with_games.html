@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rijwal_Lang IDE v0.17+ with Games</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+            border-right: 2px solid #764ba2;
+        }
+
+        .sidebar-game {
+            width: 0;
+            background: #0d1b2a;
+            border-left: 2px solid #764ba2;
+            transition: width 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-game.open {
+            width: 350px;
+        }
+
+        .sidebar-ai {
+            width: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-left: 2px solid #00d4ff;
+            transition: width 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-ai.open {
+            width: 420px;
+        }
+
+        .ai-header {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            padding: 15px;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 2px solid #00d4ff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        .ai-content {
+            flex: 1;
+            padding: 15px;
+            color: #00d4ff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+            overflow-y: auto;
+        }
+
+        .ai-message {
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .ai-message.user {
+            background: rgba(0, 212, 255, 0.15);
+            border-left: 3px solid #00d4ff;
+            margin-left: 10px;
+        }
+
+        .ai-message.assistant {
+            background: rgba(0, 153, 255, 0.1);
+            border-left: 3px solid #0099ff;
+            margin-right: 10px;
+        }
+
+        .ai-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 2px solid #00d4ff;
+            padding-top: 10px;
+        }
+
+        .ai-input {
+            width: 100%;
+            padding: 8px;
+            background: #0a1428;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: none;
+            height: 60px;
+        }
+
+        .ai-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .ai-send-btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .ai-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .ai-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .ai-quick-btn {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s ease;
+        }
+
+        .ai-quick-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid #764ba2;
+        }
+
+        .game-content {
+            flex: 1;
+            padding: 20px;
+            color: #00ff88;
+            overflow-y: auto;
+        }
+
+        .game-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .game-btn {
+            background: #1a3a52;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .game-btn:hover {
+            background: #00ff88;
+            color: #0d1b2a;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .game-display {
+            background: #1a2332;
+            padding: 15px;
+            border: 2px solid #00ff88;
+            border-radius: 5px;
+            margin-top: 15px;
+            min-height: 200px;
+            color: #00ff88;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #2d2d2d;
+            padding: 15px;
+            border-bottom: 2px solid #764ba2;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .toolbar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .toolbar-btn.game-toggle {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: #252525;
+            border-bottom: 1px solid #764ba2;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: #2d2d2d;
+            border-right: 1px solid #3d3d3d;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: #1e1e1e;
+            color: #00ff88;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .tab:hover {
+            color: #00ff88;
+        }
+
+        .tab-close {
+            margin-left: 10px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .tab-close:hover {
+            color: #ff6b6b;
+        }
+
+        .editor-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .file-explorer {
+            width: 250px;
+            background: #1e1e1e;
+            border-right: 1px solid #764ba2;
+            overflow-y: auto;
+            padding: 15px;
+            color: #888;
+        }
+
+        .file-tree-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            color: #888;
+            border-radius: 3px;
+            transition: all 0.2s;
+            margin: 3px 0;
+        }
+
+        .file-tree-item:hover {
+            background: #2d2d2d;
+            color: #00ff88;
+        }
+
+        .file-icon {
+            margin-right: 8px;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea.code-editor {
+            flex: 1;
+            background: #1e1e1e;
+            color: #00ff88;
+            border: none;
+            padding: 15px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        .console-area {
+            background: #0a0e27;
+            border-top: 2px solid #764ba2;
+            flex: 0 0 200px;
+            padding: 15px;
+            color: #00ff88;
+            font-family: monospace;
+            overflow-y: auto;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .console-line {
+            margin: 3px 0;
+            line-height: 1.4;
+        }
+
+        .console-output {
+            color: #00ff88;
+        }
+
+        .console-error {
+            color: #ff6b6b;
+        }
+
+        .console-info {
+            color: #87ceeb;
+        }
+
+        .mini-game {
+            background: #1a2332;
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            color: #00ff88;
+            font-size: 13px;
+        }
+
+        .mini-game-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .mini-tictactoe {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .ttt-cell {
+            aspect-ratio: 1;
+            background: #0a1428;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .ttt-cell:hover {
+            background: #00ff88;
+            color: #0a1428;
+        }
+
+        .mini-game-output {
+            background: #0a1428;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            min-height: 40px;
+            border: 1px solid #00ff88;
+        }
+
+        .score-display {
+            background: #0a1428;
+            color: #00ff88;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #00ff88;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .game-control-btn {
+            flex: 1;
+            padding: 8px;
+            background: #1a3a52;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .game-control-btn:hover {
+            background: #00ff88;
+            color: #0a1428;
+        }
+
+        .status-bar {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            border-top: 1px solid #764ba2;
+            color: #888;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .title-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #764ba2;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="editor-container">
+            <div class="title-bar">🎮 Rijwal_Lang IDE v0.17+ with Mini Games 🎮</div>
+            
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="runCode()">▶ Run Code</button>
+                <button class="toolbar-btn" onclick="clearConsole()">🗑️ Clear Console</button>
+                <button class="toolbar-btn" onclick="saveFile()">💾 Save</button>
+                <button class="toolbar-btn game-toggle" onclick="toggleGameSidebar()">🎮 Open Games</button>
+                <button class="toolbar-btn ai-toggle" onclick="toggleAISidebar()">🤖 AI Assistant</button>
+                <button class="toolbar-btn" onclick="newFile()">📄 New File</button>
+            </div>
+
+            <div class="editor-tabs">
+                <div class="tab active" onclick="switchTab(0)">program.Rijwal_lang</div>
+                <div class="tab" onclick="switchTab(1)">data.json</div>
+                <div class="tab" onclick="switchTab(2)">notes.txt</div>
+            </div>
+
+            <div class="editor-content">
+                <div class="file-explorer">
+                    <div style="color: #00ff88; margin-bottom: 10px; font-weight: bold;">📁 Files</div>
+                    <div class="file-tree-item" onclick="openFile('program.Rijwal_lang')">
+                        <span class="file-icon">🐍</span>program.Rijwal_lang
+                    </div>
+                    <div class="file-tree-item" onclick="openFile('data.json')">
+                        <span class="file-icon">📊</span>data.json
+                    </div>
+                    <div class="file-tree-item" onclick="openFile('config.txt')">
+                        <span class="file-icon">⚙️</span>config.txt
+                    </div>
+                    <div class="file-tree-item" onclick="openFile('README.md')">
+                        <span class="file-icon">📖</span>README.md
+                    </div>
+                </div>
+
+                <div class="editor-area">
+                    <textarea class="code-editor" id="codeEditor" placeholder="Write your Rijwal_Lang code here...">
+# Rijwal_Lang Example Program
+When Program Starts:
+    Print "Welcome to Rijwal_Lang IDE!"
+    Print "Select a game from the sidebar to refresh your mind!"
+    
+    # Enable plugins
+    plugin_enable("string_plugin")
+    
+    Let message = "Coding + Gaming = Fun!"
+    Print message
+                    </textarea>
+                    
+                    <div class="console-area" id="console">
+                        <div class="console-line console-info">>> Rijwal_Lang IDE Console</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span>Rijwal_Lang v0.17+</span>
+                <span id="statusText">Ready</span>
+            </div>
+        </div>
+
+        <div class="sidebar-game" id="gameSidebar">
+            <div class="game-header">🎮 Mind Break Games</div>
+            <div class="game-content">
+                <div class="game-list">
+                    <button class="game-btn" onclick="playGame('tictactoe')">🎯 Tic-Tac-Toe</button>
+                    <button class="game-btn" onclick="playGame('guess')">🔢 Number Guess</button>
+                    <button class="game-btn" onclick="playGame('hangman')">🎲 Hangman</button>
+                    <button class="game-btn" onclick="playGame('memory')">🧠 Memory Match</button>
+                    <button class="game-btn" onclick="playGame('quickmath')">⚡ Quick Math</button>
+                </div>
+
+                <div id="gameDisplay" class="game-display">
+                    <div style="text-align: center; color: #888;">
+                        Select a game to start!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-ai" id="aiSidebar">
+            <div class="ai-header">
+                🤖 AI Assistant
+                <button class="ai-close-btn" onclick="toggleAISidebar()">✕</button>
+            </div>
+            <div class="ai-content">
+                <div class="ai-chat-container" id="aiChatContainer">
+                    <div class="ai-message assistant">
+                        👋 Hi! I'm your AI Code Assistant. Ask me anything about coding, debugging, or learning to program!
+                    </div>
+                </div>
+
+                <div class="ai-input-area">
+                    <div class="ai-options">
+                        <button class="ai-quick-btn" onclick="quickAIRequest('error')">🔧 Fix Error</button>
+                        <button class="ai-quick-btn" onclick="quickAIRequest('explain')">📚 Explain</button>
+                        <button class="ai-quick-btn" onclick="quickAIRequest('example')">💡 Example</button>
+                        <button class="ai-quick-btn" onclick="quickAIRequest('refactor')">✨ Refactor</button>
+                    </div>
+                    <textarea class="ai-input" id="aiInput" placeholder="Ask me anything... (or use quick buttons)" onkeypress="handleAIKeypress(event)"></textarea>
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        let currentGame = null;
+
+        // AI ASSISTANT FUNCTIONS
+        let aiHistory = [];
+
+        function toggleAISidebar() {
+            const sidebar = document.getElementById('aiSidebar');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                setTimeout(() => document.getElementById('aiInput').focus(), 300);
+            }
+        }
+
+        function handleAIKeypress(event) {
+            if (event.key === 'Enter' && event.ctrlKey) {
+                sendAIMessage();
+            }
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Add user message
+            addAIChatMessage(message, 'user');
+            input.value = '';
+
+            // Get code context
+            const codeContext = document.getElementById('codeEditor').value;
+
+            // Send to backend API
+            fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    code: codeContext
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addAIChatMessage(data.response, 'assistant');
+                } else {
+                    addAIChatMessage(`❌ Error: ${data.error}`, 'assistant');
+                }
+            })
+            .catch(error => {
+                addAIChatMessage(`❌ Connection error: ${error.message}`, 'assistant');
+            });
+        }
+
+        function quickAIRequest(type) {
+            const code = document.getElementById('codeEditor').value;
+            let request = '';
+
+            switch(type) {
+                case 'error':
+                    request = `I'm getting an error in my code. Can you help me fix it?\n\nCode:\n\`\`\`\n${code}\n\`\`\``;
+                    break;
+                case 'explain':
+                    request = `Can you explain what this code does?\n\n\`\`\`\n${code}\n\`\`\``;
+                    break;
+                case 'example':
+                    request = `Can you show me an example of how to use this code or a similar concept?`;
+                    break;
+                case 'refactor':
+                    request = `How can I improve or refactor this code?\n\n\`\`\`\n${code}\n\`\`\``;
+                    break;
+            }
+
+            if (request) {
+                document.getElementById('aiInput').value = request;
+                document.getElementById('aiInput').focus();
+            }
+        }
+
+        function addAIChatMessage(text, role) {
+            const container = document.getElementById('aiChatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `ai-message ${role}`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateAIResponse(userMessage) {
+            const lower = userMessage.toLowerCase();
+
+            // Smart responses based on keywords
+            if (lower.includes('error') || lower.includes('bug')) {
+                return `🔧 Error? Let's debug!\n\n1. Check for syntax errors (missing brackets, quotes)\n2. Verify all variables are defined\n3. Make sure plugin dependencies are loaded\n4. Print variable values to identify the issue\n\nTry adding print statements to see where it breaks!`;
+            }
+
+            if (lower.includes('example') || lower.includes('how')) {
+                return `💡 Here's a quick example:\n\n\`\`\`rijwal\nLet numbers = [1, 2, 3, 4, 5]\nfor each item in numbers:\n    if item > 2:\n        print item * 2\n\`\`\`\n\nThis filters and transforms data!`;
+            }
+
+            if (lower.includes('plugin') || lower.includes('import')) {
+                return `📦 To use plugins:\n\n1. \`use numpy\` - For numerical computing\n2. \`use pandas\` - For data analysis\n3. \`use requests\` - For HTTP requests\n4. \`use pil\` - For image processing\n\nAll 9 plugins available! Check docs for details.`;
+            }
+
+            if (lower.includes('game') || lower.includes('fun')) {
+                return `🎮 Take a break! Click "🎮 Open Games" to play:\n- Tic-Tac-Toe\n- Number Guessing\n- Hangman\n- Memory Match\n- Quick Math\n\nPlus 5 extended games! 🎉`;
+            }
+
+            if (lower.includes('refactor') || lower.includes('improve')) {
+                return `✨ Refactoring tips:\n\n1. Extract repeated code into functions\n2. Use meaningful variable names\n3. Break long functions into smaller ones\n4. Add comments for complex logic\n5. Use built-in functions instead of loops\n\nClean code = Happy developers!`;
+            }
+
+            if (lower.includes('explain') || lower.includes('teach')) {
+                return `📚 Key concepts:\n\n**Variables** - Store data\n**Functions** - Reusable code\n**Loops** - Repeat actions\n**Plugins** - Extend features\n**Games** - Mental breaks!\n\nWhich would you like me to explain more?`;
+            }
+
+            // Default helpful response
+            return `💬 I'm here to help! Try asking me:\n- "I'm getting an error..."\n- "How do I use..."\n- "Show me an example..."\n- "Can you refactor this..."\n- "Explain how to..."\n\nPaste your code and let's debug together! 🚀`;
+        }
+
+        function toggleGameSidebar() {
+            const sidebar = document.getElementById('gameSidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function playGame(gameName) {
+            const gameDisplay = document.getElementById('gameDisplay');
+            
+            switch(gameName) {
+                case 'tictactoe':
+                    startTicTacToe(gameDisplay);
+                    break;
+                case 'guess':
+                    startNumberGuess(gameDisplay);
+                    break;
+                case 'hangman':
+                    startHangman(gameDisplay);
+                    break;
+                case 'memory':
+                    startMemory(gameDisplay);
+                    break;
+                case 'quickmath':
+                    startQuickMath(gameDisplay);
+                    break;
+            }
+        }
+
+        function startTicTacToe(container) {
+            let board = Array(9).fill('');
+            let human = 'X';
+            let ai = 'O';
+            let gameActive = true;
+
+            function renderBoard() {
+                let html = '<div class="mini-tictactoe">';
+                for (let i = 0; i < 9; i++) {
+                    html += `<div class="ttt-cell" onclick="makeMove(${i})">${board[i]}</div>`;
+                }
+                html += '</div>';
+                return html;
+            }
+
+            window.makeMove = function(pos) {
+                if (board[pos] === '' && gameActive) {
+                    board[pos] = human;
+                    let win = checkWin();
+                    if (win) {
+                        container.innerHTML = `<div class="mini-game-title">🎉 YOU WIN!</div>${renderBoard()}<div class="game-control-btn" onclick="playGame('tictactoe)">Play Again</div>`;
+                        gameActive = false;
+                        return;
+                    }
+                    aiMove();
+                    if (checkWin() === ai) {
+                        container.innerHTML = `<div class="mini-game-title">AI Wins</div>${renderBoard()}<div class="game-control-btn" onclick="playGame('tictactoe')">Play Again</div>`;
+                        gameActive = false;
+                    } else {
+                        container.innerHTML = `<div class="mini-game-title">Tic-Tac-Toe</div>${renderBoard()}`;
+                    }
+                }
+            };
+
+            function aiMove() {
+                let empty = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+                if (empty.length > 0) {
+                    board[empty[Math.floor(Math.random() * empty.length)]] = ai;
+                }
+            }
+
+            function checkWin() {
+                const combos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+                for (let combo of combos) {
+                    if (board[combo[0]] && board[combo[0]] === board[combo[1]] && board[combo[1]] === board[combo[2]]) {
+                        return board[combo[0]];
+                    }
+                }
+                return null;
+            }
+
+            container.innerHTML = `<div class="mini-game-title">Tic-Tac-Toe</div>${renderBoard()}`;
+        }
+
+        function startNumberGuess(container) {
+            const secret = Math.floor(Math.random() * 100) + 1;
+            let attempts = 0;
+            let gameActive = true;
+
+            window.submitGuess = function() {
+                if (!gameActive) return;
+                const input = document.getElementById('guessInput');
+                const guess = parseInt(input.value);
+                attempts++;
+
+                if (guess === secret) {
+                    container.innerHTML = `
+                        <div class="mini-game-title">🎉 Correct!</div>
+                        <div class="score-display">Attempts: ${attempts}</div>
+                        <div class="game-control-btn" onclick="playGame('guess')">Play Again</div>
+                    `;
+                    gameActive = false;
+                } else {
+                    let hint = guess < secret ? '↑ Higher' : '↓ Lower';
+                    document.getElementById('guessHint').textContent = hint;
+                    input.value = '';
+                }
+            };
+
+            container.innerHTML = `
+                <div class="mini-game-title">Number Guess (1-100)</div>
+                <div class="mini-game-output">
+                    <input id="guessInput" type="number" min="1" max="100" placeholder="Your guess" style="width: 100%; padding: 5px; background: #0a1428; color: #00ff88; border: 1px solid #00ff88;">
+                    <div id="guessHint" style="margin-top: 10px;">Guess a number!</div>
+                    <button class="game-control-btn" onclick="submitGuess()" style="margin-top: 10px; width: 100%;">Submit</button>
+                </div>
+            `;
+        }
+
+        function startHangman(container) {
+            const words = ['rijwal', 'programming', 'javascript', 'python', 'hangman'];
+            const word = words[Math.floor(Math.random() * words.length)].toUpperCase();
+            let guessed = new Set();
+            let wrong = new Set();
+
+            window.guessLetter = function() {
+                const input = document.getElementById('hangmanInput');
+                const letter = input.value.toUpperCase();
+                input.value = '';
+                if (letter && !guessed.has(letter) && !wrong.has(letter)) {
+                    if (word.includes(letter)) {
+                        guessed.add(letter);
+                    } else {
+                        wrong.add(letter);
+                    }
+                    updateHangman();
+                }
+            };
+
+            function updateHangman() {
+                let display = word.split('').map(c => guessed.has(c) ? c : '_').join(' ');
+                let html = `
+                    <div class="mini-game-title">Hangman</div>
+                    <div class="mini-game-output">
+                        <div style="font-size: 20px; letter-spacing: 5px; margin: 10px 0;">${display}</div>
+                        <div>Wrong: ${Array.from(wrong).join(', ')}</div>
+                        <div>Remaining: ${6 - wrong.size}</div>
+                        <input id="hangmanInput" type="text" maxlength="1" placeholder="Guess" style="width: 100%; padding: 5px; margin-top: 10px; background: #0a1428; color: #00ff88; border: 1px solid #00ff88;">
+                        <button class="game-control-btn" onclick="guessLetter()" style="width: 100%; margin-top: 5px;">Guess</button>
+                    </div>
+                `;
+                container.innerHTML = html;
+            }
+
+            updateHangman();
+        }
+
+        function startMemory(container) {
+            const pairs = ['🌟', '🎮', '🚀', '💎', '🎨', '🔥', '⚡', '🌈'];
+            const cards = [...pairs, ...pairs];
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            let revealed = Array(16).fill(false);
+            let matched = 0;
+
+            window.flipCard = function(index) {
+                if (!revealed[index]) {
+                    revealed[index] = true;
+                    updateMemory();
+                }
+            };
+
+            function updateMemory() {
+                let html = '<div class="mini-game-title">Memory Match</div><div class="mini-tictactoe" style="grid-template-columns: repeat(4, 1fr);">';
+                for (let i = 0; i < 16; i++) {
+                    html += `<div class="ttt-cell" onclick="flipCard(${i})">${revealed[i] ? cards[i] : '?'}</div>`;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            updateMemory();
+        }
+
+        function startQuickMath(container) {
+            let score = 0;
+            let time = 30;
+            let gameActive = true;
+
+            const generateProblem = () => {
+                const a = Math.floor(Math.random() * 20) + 1;
+                const b = Math.floor(Math.random() * 20) + 1;
+                const op = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+                let answer;
+                if (op === '+') answer = a + b;
+                else if (op === '-') answer = a - b;
+                else answer = a * b;
+                return { problem: `${a} ${op} ${b}`, answer };
+            };
+
+            let current = generateProblem();
+
+            window.submitMath = function() {
+                const input = document.getElementById('mathInput');
+                const answer = parseInt(input.value);
+                if (answer === current.answer) {
+                    score++;
+                }
+                current = generateProblem();
+                input.value = '';
+                updateMath();
+            };
+
+            function updateMath() {
+                let html = `
+                    <div class="mini-game-title">Quick Math - ${time}s</div>
+                    <div class="score-display">Score: ${score}</div>
+                    <div class="mini-game-output" style="font-size: 24px; text-align: center;">
+                        ${current.problem} = ?
+                    </div>
+                    <input id="mathInput" type="number" placeholder="Answer" style="width: 100%; padding: 8px; margin-top: 10px; background: #0a1428; color: #00ff88; border: 1px solid #00ff88;">
+                    <button class="game-control-btn" onclick="submitMath()" style="width: 100%; margin-top: 5px;">Submit</button>
+                `;
+                container.innerHTML = html;
+            }
+
+            const timer = setInterval(() => {
+                time--;
+                if (time <= 0) {
+                    clearInterval(timer);
+                    gameActive = false;
+                    container.innerHTML = `<div class="mini-game-title">🏆 Game Over!</div><div class="score-display">Final Score: ${score}</div><div class="game-control-btn" onclick="playGame('quickmath')">Play Again</div>`;
+                } else {
+                    updateMath();
+                }
+            }, 1000);
+
+            updateMath();
+        }
+
+        function runCode() {
+            const code = document.getElementById('codeEditor').value;
+            const console = document.getElementById('console');
+            console.innerHTML = '<div class="console-line console-info">>> Running code...</div>';
+            addConsoleOutput('Code executed!');
+        }
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '<div class="console-line console-info">>> Console cleared</div>';
+        }
+
+        function saveFile() {
+            addConsoleOutput('File saved!');
+        }
+
+        function newFile() {
+            document.getElementById('codeEditor').value = '';
+            addConsoleOutput('New file created');
+        }
+
+        function addConsoleOutput(text) {
+            const console = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = 'console-line console-output';
+            line.textContent = text;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function switchTab(index) {
+            // Tab switching logic
+        }
+
+        function openFile(filename) {
+            addConsoleOutput(`Opened: ${filename}`);
+        }
+    </script>
+</body>
+</html>

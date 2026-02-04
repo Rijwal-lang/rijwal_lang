@@ -1,0 +1,12 @@
+When Program Starts:
+    Print "RijLang v0.5 starting..."
+
+Python:
+    import math
+    print("Python says:", math.sqrt(16))
+
+JS:
+    console.log("JS says:", 5 + 5)
+
+Every 2 second:
+    Print "Tick from mixed mode"

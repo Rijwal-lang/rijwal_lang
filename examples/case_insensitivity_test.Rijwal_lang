@@ -1,0 +1,12 @@
+When Program Starts:
+    Print "RijLang v0.5"
+
+Python:
+    IMPORT math
+    PRINT(math.sqrt(25))
+
+JS:
+    CONSOLE.LOG("JS OK")
+
+Every 2 Second:
+    PRINT "Tick v0.5"

@@ -1,0 +1,478 @@
+<!-- Plugin Marketplace UI - Embed in IDE -->
+<!-- Add this to ide_with_games.html as a new sidebar -->
+
+<style>
+  .marketplace-sidebar {
+    position: fixed;
+    right: -420px;
+    top: 0;
+    width: 420px;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .marketplace-sidebar.open {
+    right: 0;
+  }
+  
+  .marketplace-header {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .marketplace-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .marketplace-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .marketplace-close:hover {
+    background: rgba(255,255,255,0.3);
+  }
+  
+  .marketplace-search {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .marketplace-search input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 14px;
+  }
+  
+  .marketplace-search input::placeholder {
+    color: rgba(255,255,255,0.6);
+  }
+  
+  .marketplace-tabs {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .marketplace-tab {
+    flex: 1;
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  
+  .marketplace-tab.active {
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.5);
+  }
+  
+  .marketplace-tab:hover {
+    background: rgba(255,255,255,0.2);
+  }
+  
+  .marketplace-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  
+  .plugin-card {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .plugin-card:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-5px);
+  }
+  
+  .plugin-title {
+    color: white;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+  }
+  
+  .plugin-author {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    margin: 0 0 8px 0;
+  }
+  
+  .plugin-description {
+    color: rgba(255,255,255,0.8);
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0 0 10px 0;
+  }
+  
+  .plugin-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 10px;
+  }
+  
+  .plugin-rating {
+    color: #FFD700;
+  }
+  
+  .plugin-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .plugin-btn {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .plugin-install {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  .plugin-install:hover {
+    background: #45a049;
+  }
+  
+  .plugin-view {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  
+  .plugin-view:hover {
+    background: rgba(255,255,255,0.3);
+  }
+  
+  .marketplace-upload {
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .upload-btn {
+    width: 100%;
+    padding: 10px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .upload-btn:hover {
+    background: #45a049;
+  }
+  
+  .marketplace-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+    z-index: 999;
+  }
+  
+  .marketplace-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 30px 15px;
+    color: rgba(255,255,255,0.7);
+  }
+  
+  .empty-state p {
+    margin: 0;
+    font-size: 14px;
+  }
+</style>
+
+<div id="marketplaceSidebar" class="marketplace-sidebar">
+  <div class="marketplace-header">
+    <h2>🔌 Plugin Marketplace</h2>
+    <button class="marketplace-close" onclick="toggleMarketplace()">✕</button>
+  </div>
+  
+  <div class="marketplace-search">
+    <input type="text" id="pluginSearch" placeholder="Search plugins..." 
+           onkeyup="searchPlugins(this.value)">
+  </div>
+  
+  <div class="marketplace-tabs">
+    <div class="marketplace-tab active" onclick="switchTab('trending')">Trending</div>
+    <div class="marketplace-tab" onclick="switchTab('installed')">Installed</div>
+    <div class="marketplace-tab" onclick="switchTab('creator')">My Plugins</div>
+  </div>
+  
+  <div class="marketplace-content" id="pluginsContainer">
+    <div class="empty-state">
+      <p>Loading plugins...</p>
+    </div>
+  </div>
+  
+  <div class="marketplace-upload">
+    <button class="upload-btn" onclick="openUploadDialog()">📤 Upload Plugin</button>
+  </div>
+</div>
+
+<button class="marketplace-toggle" onclick="toggleMarketplace()">🔌</button>
+
+<script>
+  let currentTab = 'trending';
+  let marketplaceOpen = false;
+  
+  function toggleMarketplace() {
+    const sidebar = document.getElementById('marketplaceSidebar');
+    marketplaceOpen = !marketplaceOpen;
+    
+    if (marketplaceOpen) {
+      sidebar.classList.add('open');
+      loadPlugins(currentTab);
+    } else {
+      sidebar.classList.remove('open');
+    }
+  }
+  
+  function switchTab(tab) {
+    currentTab = tab;
+    
+    // Update active tab visual
+    document.querySelectorAll('.marketplace-tab').forEach(t => {
+      t.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    loadPlugins(tab);
+  }
+  
+  function loadPlugins(tab) {
+    const container = document.getElementById('pluginsContainer');
+    container.innerHTML = '<div class="empty-state"><p>Loading...</p></div>';
+    
+    let endpoint = '/api/marketplace/plugins/trending';
+    
+    if (tab === 'installed') {
+      // Get user's installed plugins
+      const userId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9);
+      endpoint = `/api/marketplace/users/${userId}/installations`;
+    } else if (tab === 'creator') {
+      // Get creator's plugins
+      const creatorId = localStorage.getItem('creatorId');
+      if (creatorId) {
+        endpoint = `/api/marketplace/plugins/by-creator/${creatorId}`;
+      } else {
+        container.innerHTML = '<div class="empty-state"><p>Sign in as creator to see your plugins</p></div>';
+        return;
+      }
+    }
+    
+    fetch(endpoint)
+      .then(r => r.json())
+      .then(data => {
+        const plugins = data.plugins || [];
+        
+        if (plugins.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No plugins found</p></div>';
+          return;
+        }
+        
+        container.innerHTML = plugins.map(p => `
+          <div class="plugin-card">
+            <h3 class="plugin-title">${p.name}</h3>
+            <p class="plugin-author">by ${p.author_id}</p>
+            <p class="plugin-description">${p.description}</p>
+            <div class="plugin-stats">
+              <span class="plugin-rating">⭐ ${(p.rating || 0).toFixed(1)}</span>
+              <span>📥 ${p.downloads || 0} downloads</span>
+              <span>v${p.version}</span>
+            </div>
+            <div class="plugin-actions">
+              <button class="plugin-btn plugin-install" 
+                      onclick="installPlugin('${p.id}', '${p.name}')">Install</button>
+              <button class="plugin-btn plugin-view" 
+                      onclick="viewPluginDetails('${p.id}')">Details</button>
+            </div>
+          </div>
+        `).join('');
+      })
+      .catch(e => {
+        container.innerHTML = `<div class="empty-state"><p>Error loading plugins: ${e.message}</p></div>`;
+      });
+  }
+  
+  function searchPlugins(query) {
+    const container = document.getElementById('pluginsContainer');
+    
+    if (!query.trim()) {
+      loadPlugins(currentTab);
+      return;
+    }
+    
+    container.innerHTML = '<div class="empty-state"><p>Searching...</p></div>';
+    
+    fetch(`/api/marketplace/plugins/search?q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(data => {
+        const plugins = data.plugins || [];
+        
+        if (plugins.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No plugins found</p></div>';
+          return;
+        }
+        
+        container.innerHTML = plugins.map(p => `
+          <div class="plugin-card">
+            <h3 class="plugin-title">${p.name}</h3>
+            <p class="plugin-author">by ${p.author_id}</p>
+            <p class="plugin-description">${p.description}</p>
+            <div class="plugin-stats">
+              <span class="plugin-rating">⭐ ${(p.rating || 0).toFixed(1)}</span>
+              <span>📥 ${p.downloads || 0} downloads</span>
+            </div>
+            <div class="plugin-actions">
+              <button class="plugin-btn plugin-install" 
+                      onclick="installPlugin('${p.id}', '${p.name}')">Install</button>
+              <button class="plugin-btn plugin-view" 
+                      onclick="viewPluginDetails('${p.id}')">Details</button>
+            </div>
+          </div>
+        `).join('');
+      })
+      .catch(e => {
+        container.innerHTML = `<div class="empty-state"><p>Search error: ${e.message}</p></div>`;
+      });
+  }
+  
+  function installPlugin(pluginId, pluginName) {
+    const userId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('userId', userId);
+    
+    fetch(`/api/marketplace/plugins/${pluginId}/install`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: userId})
+    })
+      .then(r => r.json())
+      .then(data => {
+        alert(`✅ ${pluginName} installed!`);
+        loadPlugins(currentTab);
+      })
+      .catch(e => alert(`Error: ${e.message}`));
+  }
+  
+  function viewPluginDetails(pluginId) {
+    fetch(`/api/marketplace/plugins/${pluginId}`)
+      .then(r => r.json())
+      .then(p => {
+        const details = `
+Plugin: ${p.name}
+Author: ${p.author_id}
+Version: ${p.version}
+Rating: ⭐ ${(p.rating || 0).toFixed(1)}
+Downloads: ${p.downloads}
+
+${p.description}
+
+Category: ${p.category}
+Tags: ${p.tags.join(', ')}
+        `;
+        alert(details);
+      })
+      .catch(e => alert(`Error: ${e.message}`));
+  }
+  
+  function openUploadDialog() {
+    const creatorName = prompt('Enter your creator username:');
+    if (!creatorName) return;
+    
+    localStorage.setItem('creatorId', 'creator_' + Math.random());
+    
+    const pluginName = prompt('Plugin name:');
+    if (!pluginName) return;
+    
+    const description = prompt('Plugin description:');
+    if (!description) return;
+    
+    const code = prompt('Plugin code (JavaScript):') || 'console.log("Hello from plugin");';
+    
+    fetch('/api/marketplace/plugins/upload', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: pluginName,
+        author_id: 'creator_' + creatorName,
+        description: description,
+        code: code,
+        category: 'General',
+        tags: ['custom']
+      })
+    })
+      .then(r => r.json())
+      .then(data => {
+        alert(`✅ Plugin uploaded! ID: ${data.plugin.id}`);
+        loadPlugins('creator');
+      })
+      .catch(e => alert(`Error: ${e.message}`));
+  }
+  
+  // Load plugins on first open
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Marketplace ready
+    });
+  }
+</script>

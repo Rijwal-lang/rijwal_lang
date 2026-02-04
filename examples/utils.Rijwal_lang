@@ -1,0 +1,2 @@
+Function square(x):
+    Return x * x

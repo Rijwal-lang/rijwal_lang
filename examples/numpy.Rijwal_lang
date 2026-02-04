@@ -1,0 +1,3 @@
+When Program Starts:
+    Use Python "numpy"
+    Print "Numpy loaded successfully"

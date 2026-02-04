@@ -1,0 +1,33 @@
+Function celsius_to_fahrenheit(celsius):
+    Return celsius * 9/5 + 32
+
+Function fahrenheit_to_celsius(fahrenheit):
+    Return (fahrenheit - 32) * 5/9
+
+Function celsius_to_kelvin(celsius):
+    Return celsius + 273.15
+
+When Program Starts:
+    Print "=== Temperature Converter ==="
+    Print ""
+    Print "1. Celsius to Fahrenheit"
+    Print "2. Fahrenheit to Celsius"
+    Print "3. Celsius to Kelvin"
+    Print ""
+    
+    Input choice
+    Input temperature
+    
+    Print ""
+    
+    If choice = 1:
+        Let result = celsius_to_fahrenheit(temperature)
+        Print temperature + "°C = " + result + "°F"
+    
+    If choice = 2:
+        Let result = fahrenheit_to_celsius(temperature)
+        Print temperature + "°F = " + result + "°C"
+    
+    If choice = 3:
+        Let result = celsius_to_kelvin(temperature)
+        Print temperature + "°C = " + result + "K"

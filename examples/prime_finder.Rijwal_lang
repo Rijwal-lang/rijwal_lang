@@ -1,0 +1,30 @@
+Function is_prime(n):
+    If n < 2:
+        Return false
+    
+    Let i = 2
+    While i * i <= n:
+        If n % i = 0:
+            Return false
+        Let i = i + 1
+    
+    Return true
+
+Function get_primes(max):
+    Let primes = ""
+    Let i = 2
+    
+    While i <= max:
+        If is_prime(i):
+            Let primes = primes + i + ", "
+        Let i = i + 1
+    
+    Return primes
+
+When Program Starts:
+    Print "=== Prime Number Finder ==="
+    Print ""
+    Input limit
+    
+    Print "Prime numbers up to " + limit + ":"
+    Print get_primes(limit)

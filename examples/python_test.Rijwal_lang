@@ -1,0 +1,5 @@
+When Program Starts:
+    Use Python "numpy"
+    Python:
+        import numpy as np
+        print(np.array([1,2,3]) * 2)

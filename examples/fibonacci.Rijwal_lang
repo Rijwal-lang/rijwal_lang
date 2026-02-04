@@ -1,0 +1,19 @@
+When Program Starts:
+    Print "=== Fibonacci Sequence ==="
+    Print ""
+    Input count
+    
+    Let a = 0
+    Let b = 1
+    
+    Print "Fibonacci sequence:"
+    Print a
+    
+    Let i = 1
+    
+    While i < count:
+        Let next = a + b
+        Print next
+        Let a = b
+        Let b = next
+        Let i = i + 1

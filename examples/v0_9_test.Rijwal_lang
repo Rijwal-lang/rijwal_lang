@@ -1,0 +1,18 @@
+Let x = 5
+
+When Program Starts:
+    Print "RijLang v0.9"
+
+If x > 3:
+    Print "x is big"
+Else:
+    Print "x is small"
+
+Python:
+    print("Python sees x:", x * 2)
+
+JS:
+    console.log("JS sees x:", x + 10)
+
+Every 2 second:
+    Print "Tick v0.9"

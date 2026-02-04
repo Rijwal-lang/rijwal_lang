@@ -1,0 +1,7 @@
+Restrictions — Rijwal_Lang
+
+- Do not use Rijwal_Lang for illegal or harmful activities.
+- Do not misrepresent the project or its authorship.
+- Respect the FBAL license and the community spirit of the project.
+
+Rijwal_Lang is intended for learning, experimentation, and constructive use.

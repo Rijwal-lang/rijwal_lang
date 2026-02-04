@@ -1,0 +1,20 @@
+When Program Starts:
+    Print "=== Word Game ==="
+    Print ""
+    Print "Type a word and I'll transform it!"
+    Print ""
+    
+    Input word
+    
+    Print ""
+    Print "Original: " + word
+    Print "Uppercase: " + upper(word)
+    Print "Lowercase: " + lower(word)
+    Print "Reversed: " + reverse(word)
+    Print "Length: " + len(word)
+    
+    Print ""
+    Print "First letter: " + word
+    
+    Let words = split(word, "")
+    Print "Characters: " + len(words)

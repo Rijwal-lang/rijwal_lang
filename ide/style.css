@@ -1,0 +1,460 @@
+/* ========== GENERAL STYLES ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ========== HEADER ========== */
+.header {
+    background: #1e1e1e;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.logo h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.logo p {
+    font-size: 12px;
+    color: #999;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.btn-success {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #38a169;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(72, 187, 120, 0.4);
+}
+
+.btn-secondary {
+    background: #718096;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4a5568;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* ========== EDITOR SECTION ========== */
+.editor-section {
+    display: flex;
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.file-explorer {
+    width: 220px;
+    background: #f5f5f5;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.explorer-header {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.explorer-header h3 {
+    font-size: 14px;
+    margin: 0;
+}
+
+.file-tree {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+.file-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 4px 0;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.file-item:hover {
+    background: #e0e0e0;
+}
+
+.file-item.active {
+    background: #667eea;
+    color: white;
+}
+
+/* ========== EDITOR WRAPPER ========== */
+.editor-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.editor-tabs {
+    background: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    padding: 4px 8px;
+    gap: 4px;
+    overflow-x: auto;
+}
+
+.tab {
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.tab.active {
+    background: white;
+    border-color: #667eea;
+    border-bottom-color: white;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.close-tab {
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+.close-tab:hover {
+    opacity: 1;
+}
+
+/* ========== CODE EDITOR ========== */
+.editor {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    background: white;
+    resize: none;
+    outline: none;
+    tab-size: 4;
+}
+
+.line-numbers {
+    position: absolute;
+    left: 0;
+    top: 50px;
+    background: #f5f5f5;
+    color: #999;
+    padding: 16px 8px;
+    text-align: right;
+    border-right: 1px solid #ddd;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    user-select: none;
+    width: 50px;
+}
+
+/* ========== OUTPUT SECTION ========== */
+.output-section {
+    width: 350px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.output-tabs {
+    display: flex;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    gap: 4px;
+    padding: 8px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.tab-btn:hover {
+    background: #d0d0d0;
+}
+
+.tab-btn.active:hover {
+    background: #5568d3;
+}
+
+/* ========== TAB CONTENT ========== */
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    display: none;
+    padding: 12px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ========== CONSOLE ========== */
+.console {
+    background: #1e1e1e;
+    color: #ddd;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.console-line {
+    margin: 4px 0;
+    padding: 4px 8px;
+    border-left: 3px solid #667eea;
+}
+
+.console-line.log {
+    color: #ddd;
+    border-left-color: #48bb78;
+}
+
+.console-line.error {
+    color: #ff6b6b;
+    border-left-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.console-line.warning {
+    color: #ffd93d;
+    border-left-color: #ffd93d;
+    background: rgba(255, 217, 61, 0.1);
+}
+
+.console-line.info {
+    color: #667eea;
+    border-left-color: #667eea;
+}
+
+.console-line.welcome {
+    color: #48bb78;
+    border-left-color: #48bb78;
+    font-weight: 600;
+}
+
+.log {
+    display: block;
+    word-wrap: break-word;
+}
+
+/* ========== HELP & DOCS ========== */
+.help-content, .docs-content {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.help-content h3, .docs-content h3 {
+    margin: 8px 0 12px;
+    color: #667eea;
+    font-size: 16px;
+}
+
+.help-item {
+    margin: 12px 0;
+    padding: 8px;
+    background: #f5f5f5;
+    border-left: 3px solid #667eea;
+    border-radius: 4px;
+}
+
+.help-item strong {
+    color: #333;
+}
+
+.help-item code {
+    background: #e8e8e8;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.docs-content details {
+    margin: 12px 0;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.docs-content summary {
+    cursor: pointer;
+    color: #667eea;
+    padding: 4px;
+}
+
+.docs-content ul {
+    margin: 8px 0 0 20px;
+    padding-top: 8px;
+}
+
+.docs-content li {
+    margin: 6px 0;
+    color: #333;
+}
+
+.docs-content code {
+    background: #e8e8e8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+    background: #1e1e1e;
+    color: #999;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 12px;
+    border-top: 1px solid #333;
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .main-content {
+        flex-direction: column;
+    }
+
+    .output-section {
+        width: 100%;
+        height: 250px;
+    }
+
+    .editor-section {
+        flex: 1;
+    }
+}

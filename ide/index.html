@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rijwal_Lang IDE - v0.12</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🚀 Rijwal_Lang IDE</h1>
+                <p>v0.12 - Write Code, See Magic</p>
+            </div>
+            <div class="header-buttons">
+                <button id="newFile" class="btn btn-primary">📄 New</button>
+                <button id="openFile" class="btn btn-primary">📂 Open</button>
+                <button id="saveFile" class="btn btn-primary">💾 Save</button>
+                <button id="runCode" class="btn btn-success">▶️ Run Code</button>
+                <button id="clearOutput" class="btn btn-secondary">🗑️ Clear</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Left: File Explorer & Editor -->
+            <div class="editor-section">
+                <!-- File Explorer -->
+                <div class="file-explorer">
+                    <div class="explorer-header">
+                        <h3>📁 Files</h3>
+                        <button id="addFolder" class="btn-small">➕</button>
+                    </div>
+                    <div id="fileTree" class="file-tree">
+                        <div class="file-item" data-file="new_project.Rijwal_lang">
+                            📄 new_project.Rijwal_lang
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Editor -->
+                <div class="editor-wrapper">
+                    <div class="editor-tabs">
+                        <div class="tab active" data-file="new_project.Rijwal_lang">
+                            new_project.Rijwal_lang
+                            <span class="close-tab">×</span>
+                        </div>
+                    </div>
+                    <textarea id="editor" class="editor" placeholder="Write your Rijwal_Lang code here...
+
+When Program Starts:
+    Print &quot;Hello, Rijwal_Lang!&quot;
+"></textarea>
+                    <div class="line-numbers" id="lineNumbers"></div>
+                </div>
+            </div>
+
+            <!-- Right: Output & Help -->
+            <div class="output-section">
+                <!-- Tabs for Output, Help, Docs -->
+                <div class="output-tabs">
+                    <button class="tab-btn active" data-tab="output">📤 Output</button>
+                    <button class="tab-btn" data-tab="help">❓ Help</button>
+                    <button class="tab-btn" data-tab="docs">📚 Docs</button>
+                </div>
+
+                <!-- Output Console -->
+                <div id="output" class="tab-content active">
+                    <div class="console">
+                        <div class="console-line welcome">
+                            <span class="log">Welcome to Rijwal_Lang IDE!</span>
+                        </div>
+                        <div class="console-line info">
+                            <span class="log">Click "Run Code" or press Ctrl+Enter to execute</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help -->
+                <div id="help" class="tab-content">
+                    <div class="help-content">
+                        <h3>Quick Help</h3>
+                        <div class="help-item">
+                            <strong>Print:</strong> <code>Print "Hello"</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Variable:</strong> <code>Let x = 5</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Input:</strong> <code>Input name</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Function:</strong> <code>Function add(a, b):
+    Return a + b</code>
+                        </div>
+                        <div class="help-item">
+                            <strong>Loop:</strong> <code>Every 1 second:
+    Print "Tick"</code>
+                        </div>
+                        <button class="btn btn-small" onclick="document.querySelector('[data-tab=\"docs\"]').click()">See Full Docs →</button>
+                    </div>
+                </div>
+
+                <!-- Documentation -->
+                <div id="docs" class="tab-content">
+                    <div class="docs-content">
+                        <h3>Language Reference</h3>
+                        <details>
+                            <summary><strong>📌 Statements</strong></summary>
+                            <ul>
+                                <li><code>Print "text"</code> - Display output</li>
+                                <li><code>Let var = value</code> - Create variable</li>
+                                <li><code>Input var</code> - Get user input</li>
+                                <li><code>When Program Starts:</code> - Program entry point</li>
+                            </ul>
+                        </details>
+                        <details>
+                            <summary><strong>🔧 Functions</strong></summary>
+                            <ul>
+                                <li><code>Function name(args):</code> - Define function</li>
+                                <li><code>Return value</code> - Return from function</li>
+                            </ul>
+                        </details>
+                        <details>
+                            <summary><strong>⏱️ Timers</strong></summary>
+                            <ul>
+                                <li><code>Every 1 second:</code> - Repeat block</li>
+                            </ul>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>Rijwal_Lang v0.12 • Made with ❤️ • All rights reserved</span>
+        </footer>
+    </div>
+
+    <input type="file" id="fileInput" style="display: none;" accept=".Rijwal_lang,.RL,.txt">
+    <script src="editor.js"></script>
+</body>
+</html>

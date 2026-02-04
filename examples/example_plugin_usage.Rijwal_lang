@@ -1,0 +1,52 @@
+# ============================================================================
+# RIJWAL_LANG v0.17 - PLUGIN ECOSYSTEM EXAMPLES
+# ============================================================================
+
+# Example 1: Enable and use NumPy Plugin
+Print "=== NumPy Plugin Demo ==="
+plugin_enable("numpy_plugin")
+Let numbers = np_array([1, 2, 3, 4, 5])
+Let mean_val = np_mean([1, 2, 3, 4, 5])
+Print "Mean: " + str(mean_val)
+
+# Example 2: Enable and use Pandas Plugin
+Print "=== Pandas Plugin Demo ==="
+plugin_enable("pandas_plugin")
+Let data = dict("name", "age", "city")
+Print "Data created with Pandas"
+
+# Example 3: String manipulation plugin
+Print "=== String Plugin Demo ==="
+plugin_enable("string_plugin")
+Let slug = str_slugify("Hello World Example!")
+Print "Slugified: " + slug
+
+# Example 4: Array operations
+Print "=== Array Plugin Demo ==="
+plugin_enable("array_plugin")
+Let my_array = [1, 2, 3, 1, 2, 3]
+Let unique_vals = arr_uniq(my_array)
+Print "Unique values: " + str(unique_vals)
+
+# Example 5: Math advanced operations
+Print "=== Math Plugin Demo ==="
+plugin_enable("math_plugin")
+Let result = derivative(lambda x: x * x, 2)
+Print "Derivative of x^2 at x=2: " + str(result)
+
+# Example 6: Data processing
+Print "=== Data Plugin Demo ==="
+plugin_enable("data_plugin")
+Let sample_data = [1, 2, 3, 4, 5]
+Let filtered = filter_data(sample_data, lambda x: x > 2)
+Print "Filtered (> 2): " + str(filtered)
+
+# Example 7: List all available plugins
+Print "=== Available Plugins ==="
+Let all_plugins = plugin_list()
+Print "Plugins: " + str(all_plugins)
+
+# Example 8: List enabled plugins
+Print "=== Enabled Plugins ==="
+Let enabled = plugin_enabled()
+Print "Currently enabled: " + str(enabled)

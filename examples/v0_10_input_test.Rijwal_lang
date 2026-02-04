@@ -1,0 +1,8 @@
+Input a
+Input b
+
+Function add(x, y):
+    Return x + y
+
+When Program Starts:
+    Print add(a, b)

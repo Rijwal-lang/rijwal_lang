@@ -1,0 +1,27 @@
+Function add(a, b):
+    Return a + b
+
+Function subtract(a, b):
+    Return a - b
+
+Function multiply(a, b):
+    Return a * b
+
+Function divide(a, b):
+    If b = 0:
+        Return "Error: Cannot divide by zero"
+    Return a / b
+
+When Program Starts:
+    Print "=== Simple Calculator ==="
+    Print ""
+    
+    Input num1
+    Input num2
+    
+    Print ""
+    Print "Results:"
+    Print "Add: " + add(num1, num2)
+    Print "Subtract: " + subtract(num1, num2)
+    Print "Multiply: " + multiply(num1, num2)
+    Print "Divide: " + divide(num1, num2)

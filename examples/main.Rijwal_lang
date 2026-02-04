@@ -1,0 +1,4 @@
+Import "utils.RL"
+
+When Program Starts:
+    Print square(5)
