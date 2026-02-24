@@ -408,3 +408,44 @@ if (terminalInput) {
         if (e.key === 'Enter') runTerminalCommand();
     });
 }
+
+
+// ========== EVOLUTION LAB ==========
+const evolutionGoals = document.getElementById('evolutionGoals');
+const evolutionGenerate = document.getElementById('evolutionGenerate');
+const evolutionOutput = document.getElementById('evolutionOutput');
+
+async function generateEvolutionPlan() {
+    if (!evolutionGoals || !evolutionOutput) return;
+    const goals = evolutionGoals.value.trim();
+    if (!goals) {
+        evolutionOutput.textContent = 'Please describe your evolution goals first.';
+        return;
+    }
+
+    evolutionOutput.textContent = 'Generating evolution roadmap...';
+
+    try {
+        const response = await fetch('/api/evolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goals, code: editor.value })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            evolutionOutput.textContent = `Error: ${data.error || 'Unknown error'}`;
+            return;
+        }
+
+        evolutionOutput.textContent = `${data.mission}
+
+${data.plan}`;
+    } catch (err) {
+        evolutionOutput.textContent = `Network error: ${err.message}`;
+    }
+}
+
+if (evolutionGenerate) {
+    evolutionGenerate.addEventListener('click', generateEvolutionPlan);
+}

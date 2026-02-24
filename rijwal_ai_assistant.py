@@ -96,6 +96,25 @@ Built-in functions: 150+. Plugins available: 9 (NumPy, Pandas, Requests, PIL, Ma
             "model": response.get("model", "unknown")
         }
     
+
+
+    def evolve_language(self, goals: str, code_context: Optional[str] = None) -> Dict[str, Any]:
+        """Generate a practical evolution plan for Rijwal language + IDE."""
+        prompt = (
+            "Create a concise self-evolution plan for Rijwal_Lang. "
+            "Return: (1) top 5 next features, (2) top 5 hardening tasks, "
+            "(3) a 7-day execution plan, (4) one sample Rijwal code snippet.\n\n"
+            f"GOALS: {goals}\n\n"
+            f"CODE CONTEXT:\n{code_context or ''}"
+        )
+        result = self.chat(prompt, code_context=code_context)
+        return {
+            "plan": result.get("response", ""),
+            "provider": result.get("provider", self.provider),
+            "model": result.get("model", "unknown"),
+            "timestamp": result.get("timestamp"),
+        }
+
     def _call_api(self, message: str) -> Dict[str, Any]:
         """
         Call the actual API (Claude or OpenAI)
@@ -229,6 +248,34 @@ Key concepts:
 5. **Games** - 10 games available for breaks!
 
 Start with examples/ and build from there! 🎮"""
+,
+            "evolution": """🧬 **Rijwal Self-Evolution Plan**
+
+1) Language core
+- Add structured control flow (`If/Else`, loops) with beginner-friendly errors
+- Add module packaging and test blocks
+
+2) IDE + terminal quality
+- Keep terminal and runner output deterministic
+- Add starter templates and guided lessons
+
+3) AI Buddy growth
+- Add one-click actions: Explain, Fix, Generate, Next Step
+- Add history-based contextual coaching
+
+4) 7-day solo plan
+- Day 1-2: tests and stability
+- Day 3-4: language ergonomics
+- Day 5: docs + examples
+- Day 6: AI actions and prompts
+- Day 7: release and user feedback
+
+5) Starter snippet
+```rijwal
+When Program Starts:
+    Print "Idea → Plan → Code → Run"
+```
+"""
         }
         
         # Smart response selection
@@ -240,6 +287,8 @@ Start with examples/ and build from there! 🎮"""
             base_response = mock_responses["refactor"]
         elif any(word in lower_msg for word in ["example", "sample", "code", "how"]):
             base_response = mock_responses["example"]
+        elif any(word in lower_msg for word in ["evolution", "self-evolving", "roadmap", "next generation"]):
+            base_response = mock_responses["evolution"]
         elif any(word in lower_msg for word in ["learn", "teach", "explain", "what"]):
             base_response = mock_responses["learn"]
         else:

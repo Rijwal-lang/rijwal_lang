@@ -14,7 +14,7 @@
         <header class="header">
             <div class="logo">
                 <h1>🚀 Rijwal_Lang IDE</h1>
-                <p>v0.12 - Write Code, See Magic</p>
+                <p>Rijwal is the fastest way for beginners to go from idea → working code with AI help.</p>
             </div>
             <div class="header-buttons">
                 <button id="newFile" class="btn btn-primary">📄 New</button>
@@ -66,6 +66,7 @@ When Program Starts:
                     <button class="tab-btn" data-tab="help">❓ Help</button>
                     <button class="tab-btn" data-tab="docs">📚 Docs</button>
                     <button class="tab-btn" data-tab="terminal">⌨️ Terminal</button>
+                    <button class="tab-btn" data-tab="evolution">🧬 Evolution</button>
                 </div>
 
                 <!-- Output Console -->
@@ -147,6 +148,20 @@ When Program Starts:
                         </div>
                     </div>
                 </div>
+
+                <!-- Evolution -->
+                <div id="evolution" class="tab-content">
+                    <div class="evolution-panel">
+                        <h3>🧬 Self-Evolving Rijwal Lab</h3>
+                        <p class="evolution-mission">Rijwal is the fastest way for beginners to go from idea → working code with AI help.</p>
+                        <textarea id="evolutionGoals" class="evolution-goals" placeholder="Describe what should evolve next (language, AI buddy, IDE, onboarding)..."></textarea>
+                        <div class="evolution-actions">
+                            <button id="evolutionGenerate" class="btn btn-success">Generate Evolution Plan</button>
+                        </div>
+                        <pre id="evolutionOutput" class="evolution-output">No evolution plan generated yet.</pre>
+                    </div>
+                </div>
+
 
             </div>
         </div>

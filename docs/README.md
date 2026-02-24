@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-FBAL-green)
 ![Status](https://img.shields.io/badge/status-Production-brightgreen)
 
-**A beautiful, easy-to-learn programming language with a modern web-based IDE**
+**Rijwal is the fastest way for beginners to go from idea → working code with AI help.**
 
 [🎓 Tutorial](#tutorial) • [📚 Language Reference](#documentation) • [💻 Examples](#examples) • [🚀 Installation](#installation)
 
@@ -47,6 +47,7 @@ Then open: `http://localhost:5000`
 - Legacy IDE: `/legacy`
 - IDLE info API: `/idle`
 - Terminal API: `/api/terminal`
+- Evolution API: `/api/evolve`
 
 ### 2. Write Your First Program
 
@@ -81,6 +82,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 - 🎓 Code examples
 - 🤖 Draggable AI Buddy (LLM-backed with safe fallback)
 - ⌨️ Custom Rijwal Terminal tab inside IDE
+- 🧬 Evolution Lab for self-evolving language/AI roadmap
 
 ### 🛠️ Built-in Functions
 ```rijwal

@@ -26,6 +26,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
 AI_ASSISTANT = AIAssistant(provider='openai')
+MISSION_STATEMENT = "Rijwal is the fastest way for beginners to go from idea → working code with AI help."
 
 @app.route('/')
 def index():
@@ -192,6 +193,7 @@ def get_docs():
 
     docs = {
         'version': '0.13',
+        'mission': MISSION_STATEMENT,
         'statements': [
             {
                 'name': 'Print',
@@ -291,6 +293,31 @@ def terminal_command():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
+
+@app.route('/api/evolve', methods=['POST'])
+def evolve_project():
+    """Generate self-evolution roadmap for language + AI buddy."""
+    try:
+        data = request.get_json() or {}
+        goals = (data.get('goals') or '').strip()
+        code = data.get('code', '')
+
+        if not goals:
+            return jsonify({'success': False, 'error': 'No goals provided'}), 400
+
+        evolution = AI_ASSISTANT.evolve_language(goals, code_context=code)
+        return jsonify({
+            'success': True,
+            'mission': MISSION_STATEMENT,
+            'plan': evolution.get('plan', ''),
+            'provider': evolution.get('provider', 'mock'),
+            'model': evolution.get('model', 'unknown'),
+            'timestamp': evolution.get('timestamp')
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/ai-assist', methods=['POST'])
 def ai_assist():
     """AI assistant endpoint for IDE buddy."""
@@ -317,6 +344,7 @@ def health_check():
     """Simple health endpoint for IDE and IDLE integrations."""
     return jsonify({
         'success': True,
+        'mission': MISSION_STATEMENT,
         'engine_exists': os.path.exists(ENGINE_PATH),
         'ide_exists': os.path.exists(os.path.join(IDE_DIR, 'index.html')),
         'idle_exists': os.path.exists(os.path.join(SCRIPT_DIR, 'rijwal_idle.py')),
