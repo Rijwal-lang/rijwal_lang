@@ -333,3 +333,61 @@ aiBuddyInput.addEventListener('keydown', (e) => {
         aiBuddyHeader.style.cursor = 'grab';
     });
 })();
+
+
+// ========== CUSTOM TERMINAL ==========
+const terminalOutput = document.getElementById('terminalOutput');
+const terminalInput = document.getElementById('terminalInput');
+const terminalSend = document.getElementById('terminalSend');
+
+function addTerminalLine(message) {
+    if (!terminalOutput) return;
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.textContent = message;
+    terminalOutput.appendChild(line);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+async function runTerminalCommand() {
+    if (!terminalInput) return;
+    const command = terminalInput.value.trim();
+    if (!command) return;
+
+    addTerminalLine(`> ${command}`);
+    terminalInput.value = '';
+
+    if (command === 'clear') {
+        terminalOutput.innerHTML = '<div class="terminal-line">Terminal cleared.</div>';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/terminal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command, code: editor.value })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            const lines = result.output || [];
+            if (!lines.length) addTerminalLine('OK');
+            lines.forEach((line) => addTerminalLine(line));
+        } else {
+            addTerminalLine('ERROR: ' + (result.error || 'Unknown terminal error'));
+            if (result.details) addTerminalLine(result.details);
+        }
+    } catch (error) {
+        addTerminalLine('ERROR: Terminal request failed - ' + error.message);
+    }
+}
+
+if (terminalSend) {
+    terminalSend.addEventListener('click', runTerminalCommand);
+}
+if (terminalInput) {
+    terminalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') runTerminalCommand();
+    });
+}

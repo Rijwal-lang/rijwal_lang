@@ -65,6 +65,7 @@ When Program Starts:
                     <button class="tab-btn active" data-tab="output">📤 Output</button>
                     <button class="tab-btn" data-tab="help">❓ Help</button>
                     <button class="tab-btn" data-tab="docs">📚 Docs</button>
+                    <button class="tab-btn" data-tab="terminal">⌨️ Terminal</button>
                 </div>
 
                 <!-- Output Console -->
@@ -132,6 +133,21 @@ When Program Starts:
                         </details>
                     </div>
                 </div>
+
+                <!-- Terminal -->
+                <div id="terminal" class="tab-content">
+                    <div class="terminal-panel">
+                        <div id="terminalOutput" class="terminal-output">
+                            <div class="terminal-line">Rijwal Terminal ready. Type <code>help</code> to begin.</div>
+                        </div>
+                        <div class="terminal-input-wrap">
+                            <span class="terminal-prompt">rijwal&gt;</span>
+                            <input id="terminalInput" class="terminal-input" placeholder="run | help | Print &quot;Hello&quot;" />
+                            <button id="terminalSend" class="btn btn-success">Run</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

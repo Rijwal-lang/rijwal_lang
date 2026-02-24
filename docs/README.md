@@ -46,6 +46,7 @@ Then open: `http://localhost:5000`
 - Modern IDE: `/`
 - Legacy IDE: `/legacy`
 - IDLE info API: `/idle`
+- Terminal API: `/api/terminal`
 
 ### 2. Write Your First Program
 
@@ -79,6 +80,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 - 📚 Built-in documentation
 - 🎓 Code examples
 - 🤖 Draggable AI Buddy (LLM-backed with safe fallback)
+- ⌨️ Custom Rijwal Terminal tab inside IDE
 
 ### 🛠️ Built-in Functions
 ```rijwal
