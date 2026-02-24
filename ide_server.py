@@ -13,6 +13,9 @@ import tempfile
 import json
 import stat
 import re
+import uuid
+import urllib.request
+from datetime import datetime
 from pathlib import Path
 from rijwal_ai_assistant import AIAssistant
 
@@ -32,6 +35,7 @@ AI_ASSISTANT = AIAssistant(provider='local')
 MISSION_STATEMENT = "Rijwal is the fastest way for beginners to go from idea → working code with AI help."
 PLUGIN_DIR = Path(SCRIPT_DIR) / 'plugins'
 PLUGIN_NAME_RE = re.compile(r'^[A-Za-z0-9_-]+$')
+COLLAB_SESSIONS = {}
 
 @app.route('/')
 def index():
@@ -166,6 +170,43 @@ def compile_rijwal_to_python(code):
 
     py_lines.extend(["", "if __name__ == '__main__':", "    main()"])
     return {'python_code': '\n'.join(py_lines), 'ir': ir}
+
+
+def compile_ir_to_bytecode(ir):
+    """Transitional VM layer: convert IR to a tiny bytecode list."""
+    bytecode = []
+    for item in ir:
+        op = item.get('op')
+        if op == 'PRINT':
+            bytecode.append({'op': 'LOAD_EXPR', 'arg': item.get('arg', '')})
+            bytecode.append({'op': 'PRINT'})
+        elif op == 'LET':
+            bytecode.append({'op': 'LOAD_EXPR', 'arg': item.get('expr', '')})
+            bytecode.append({'op': 'STORE', 'name': item.get('name', '')})
+        else:
+            bytecode.append({'op': 'NOOP', 'raw': item.get('raw', op)})
+    return bytecode
+
+
+def run_bytecode(bytecode):
+    """Execute tiny transitional bytecode in-process."""
+    stack = []
+    locals_map = {}
+    out = []
+    for ins in bytecode:
+        op = ins.get('op')
+        if op == 'LOAD_EXPR':
+            expr = ins.get('arg', '')
+            try:
+                val = eval(expr, {'__builtins__': {}}, locals_map)
+            except Exception:
+                val = expr
+            stack.append(val)
+        elif op == 'STORE':
+            locals_map[ins.get('name')] = stack.pop() if stack else None
+        elif op == 'PRINT':
+            out.append(str(stack.pop() if stack else ''))
+    return {'output': out, 'locals': locals_map}
 
 
 def ensure_exports_dir():
@@ -508,10 +549,102 @@ def auto_update_plugins():
             if src.exists():
                 shutil.copyfile(src, dst)
                 installed.append(name)
+                continue
+
+            remote_url = item.get('remote_url')
+            if remote_url and isinstance(remote_url, str) and remote_url.startswith(('http://', 'https://')):
+                try:
+                    with urllib.request.urlopen(remote_url, timeout=10) as resp:
+                        payload = resp.read().decode('utf-8')
+                    dst.write_text(payload, encoding='utf-8')
+                    installed.append(name)
+                except Exception:
+                    continue
 
         return jsonify({'success': True, 'installed': installed})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/vm/compile', methods=['POST'])
+def vm_compile():
+    """Compile Rijwal source to transitional VM bytecode."""
+    try:
+        data = request.get_json() or {}
+        code = data.get('code', '')
+        result = compile_rijwal_to_python(code)
+        bytecode = compile_ir_to_bytecode(result.get('ir', []))
+        return jsonify({'success': True, 'bytecode': bytecode, 'ir': result.get('ir', [])})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/vm/execute', methods=['POST'])
+def vm_execute():
+    """Execute transitional VM bytecode."""
+    try:
+        data = request.get_json() or {}
+        bytecode = data.get('bytecode', [])
+        if not isinstance(bytecode, list):
+            return jsonify({'success': False, 'error': 'bytecode must be a list'}), 400
+        result = run_bytecode(bytecode)
+        return jsonify({'success': True, **result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collab/session', methods=['POST'])
+def collab_create_session():
+    """Create an in-memory collaboration session."""
+    data = request.get_json() or {}
+    session_id = uuid.uuid4().hex[:10]
+    COLLAB_SESSIONS[session_id] = {
+        'id': session_id,
+        'code': data.get('code', ''),
+        'revision': 0,
+        'users': [],
+        'events': [],
+        'created_at': datetime.utcnow().isoformat() + 'Z',
+    }
+    return jsonify({'success': True, 'session': COLLAB_SESSIONS[session_id]})
+
+
+@app.route('/api/collab/session/<session_id>', methods=['GET'])
+def collab_get_session(session_id):
+    session = COLLAB_SESSIONS.get(session_id)
+    if not session:
+        return jsonify({'success': False, 'error': 'Session not found'}), 404
+    return jsonify({'success': True, 'session': session})
+
+
+@app.route('/api/collab/op', methods=['POST'])
+def collab_apply_op():
+    """Apply a collaborative edit operation with revision check."""
+    data = request.get_json() or {}
+    session_id = data.get('session_id')
+    session = COLLAB_SESSIONS.get(session_id)
+    if not session:
+        return jsonify({'success': False, 'error': 'Session not found'}), 404
+
+    base_revision = data.get('base_revision')
+    if base_revision is not None and base_revision != session['revision']:
+        return jsonify({'success': False, 'error': 'Revision conflict', 'revision': session['revision']}), 409
+
+    user = (data.get('user') or 'anonymous').strip()[:40]
+    code = data.get('code')
+    if isinstance(code, str):
+        session['code'] = code
+
+    session['revision'] += 1
+    session['users'] = sorted(set([*session['users'], user]))
+    session['events'].append({
+        'revision': session['revision'],
+        'user': user,
+        'at': datetime.utcnow().isoformat() + 'Z',
+    })
+    session['events'] = session['events'][-100:]
+
+    return jsonify({'success': True, 'session': session})
+
 
 @app.route('/api/evolve', methods=['POST'])
 def evolve_project():

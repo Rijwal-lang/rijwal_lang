@@ -53,6 +53,8 @@ Then open: `http://localhost:5000`
 - Executable Export API: `/api/export/executable`
 - Plugins API: `/api/plugins/list`, `/api/plugins/install`, `/api/plugins/auto-update`
 - AI Prompt Update API: `/api/ai/prompt`
+- VM Transition APIs: `/api/vm/compile`, `/api/vm/execute`
+- Collaboration APIs: `/api/collab/session`, `/api/collab/op`
 
 ### 2. Write Your First Program
 
@@ -106,6 +108,9 @@ If the suite fails, **do not release** until fixed.
 - 🛠️ Tiny compiler + executable export
 - 🧩 Extension / plugin API (self-growing local catalog)
 - 🧠 AI prompt self-update and inline AI syntax support
+- 🤝 Multiplayer collaboration session API (optimistic revision flow)
+- 🧱 Interpreter → tiny VM transition path (`/api/vm/*`)
+- 🧬 Adaptive syntax rules (`Adapt Syntax "old" => "new"`) persisted by runtime
 
 ### 🛠️ Built-in Functions
 ```rijwal

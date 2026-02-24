@@ -99,6 +99,41 @@ def main() -> int:
         assert_true(r.status_code == 200, f"status={r.status_code}")
         assert_true(j.get('success') is True, f"ai prompt update failed: {j}")
 
+
+    def t_vm_transition() -> None:
+        c_r = client.post('/api/vm/compile', json={'code': 'When Program Starts:\n    Let x = 3\n    Print x'})
+        c_j = c_r.get_json() or {}
+        assert_true(c_r.status_code == 200, f"status={c_r.status_code}")
+        assert_true(c_j.get('success') is True, f"vm compile failed: {c_j}")
+        bytecode = c_j.get('bytecode')
+        assert_true(isinstance(bytecode, list) and len(bytecode) > 0, 'bytecode missing')
+
+        e_r = client.post('/api/vm/execute', json={'bytecode': bytecode})
+        e_j = e_r.get_json() or {}
+        assert_true(e_r.status_code == 200, f"status={e_r.status_code}")
+        assert_true(e_j.get('success') is True, f"vm execute failed: {e_j}")
+        assert_true('3' in (e_j.get('output') or []), f"unexpected vm output: {e_j.get('output')}")
+
+    def t_collab() -> None:
+        create_r = client.post('/api/collab/session', json={'code': 'When Program Starts:\n    Print "hi"'})
+        create_j = create_r.get_json() or {}
+        assert_true(create_r.status_code == 200, f"status={create_r.status_code}")
+        assert_true(create_j.get('success') is True, f"collab create failed: {create_j}")
+        session = create_j.get('session') or {}
+        sid = session.get('id')
+        assert_true(bool(sid), 'session id missing')
+
+        op_r = client.post('/api/collab/op', json={
+            'session_id': sid,
+            'base_revision': session.get('revision'),
+            'user': 'suite',
+            'code': 'When Program Starts:\n    Print "sync"'
+        })
+        op_j = op_r.get_json() or {}
+        assert_true(op_r.status_code == 200, f"status={op_r.status_code}")
+        assert_true(op_j.get('success') is True, f"collab op failed: {op_j}")
+        assert_true((op_j.get('session') or {}).get('revision') == 1, 'collab revision not advanced')
+
     def t_terminal() -> None:
         help_r = client.post('/api/terminal', json={'command': 'help', 'code': ''})
         help_j = help_r.get_json() or {}
@@ -135,6 +170,8 @@ def main() -> int:
         ('export', t_export),
         ('plugins', t_plugins),
         ('ai_prompt_update', t_ai_prompt_update),
+        ('vm_transition', t_vm_transition),
+        ('collab', t_collab),
         ('terminal', t_terminal),
         ('ai_assist', t_ai_assist),
         ('evolve', t_evolve),

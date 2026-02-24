@@ -13,6 +13,7 @@ import textwrap
 import math
 import random
 import importlib.util
+import json
 from fractions import Fraction
 from pathlib import Path
 
@@ -30,6 +31,8 @@ VERSION = "0.13"
 EXTENSIONS = ['.Rijwal_lang', '.Rijwal_Lang', '.RL', '.rl', '.rjwl']
 PLUGIN_DIR = Path(__file__).resolve().parent / 'plugins'
 LOADED_PLUGINS = {}
+LANGUAGE_RULES = {}
+RULES_FILE = Path(__file__).resolve().parent / 'runtime_rules.json'
 
 # ================ ERROR HANDLING ================
 
@@ -64,6 +67,36 @@ def warn(msg):
 def debug(msg):
     if DEBUG:
         print(f"[DEBUG] {msg}")
+
+
+def load_language_rules():
+    """Load persisted dynamic syntax rules."""
+    if not RULES_FILE.exists():
+        return
+    try:
+        data = json.loads(RULES_FILE.read_text(encoding='utf-8'))
+        if isinstance(data, dict):
+            LANGUAGE_RULES.update({str(k): str(v) for k, v in data.items()})
+    except Exception:
+        pass
+
+
+def save_language_rules():
+    """Persist dynamic syntax rules to disk."""
+    try:
+        RULES_FILE.write_text(json.dumps(LANGUAGE_RULES, indent=2), encoding='utf-8')
+    except Exception:
+        pass
+
+
+def apply_language_rules(line: str) -> str:
+    """Apply keyword-level dynamic syntax rewrites."""
+    updated = line
+    for src, dst in LANGUAGE_RULES.items():
+        if not src:
+            continue
+        updated = re.sub(rf"\b{re.escape(src)}\b", dst, updated, flags=re.IGNORECASE)
+    return updated
 
 # ================ BUILT-IN FUNCTIONS ================
 
@@ -391,6 +424,7 @@ BUILTIN_FUNCS = {
     'sleep': builtin_sleep,
     'iif': builtin_iif,
     'plugins': builtin_loaded_plugins,
+    'rules': lambda: dict(LANGUAGE_RULES),
 }
 
 BUILTIN_DOCS = {
@@ -441,6 +475,7 @@ BUILTIN_DOCS = {
     'sleep(seconds)': 'Pause execution',
     'iif(condition, true_value, false_value)': 'Inline conditional selection',
     'plugins()': 'List loaded plugins',
+    'rules()': 'Show active dynamic syntax rules',
 }
 
 # ================ HELPERS ================
@@ -678,6 +713,16 @@ def execute_block_command(content, output_buffer=None):
             raise RijwalRuntimeError(f"AI command failed: {e}")
         return
 
+    # Adapt syntax dynamically
+    m = re.match(r'adapt\s+syntax\s+"([^"]+)"\s*=>\s*"([^"]+)"\s*$', content, re.IGNORECASE)
+    if m:
+        src, dst = m.group(1).strip(), m.group(2).strip()
+        if src and dst:
+            LANGUAGE_RULES[src] = dst
+            save_language_rules()
+            output_buffer.append(f"[rules] {src} => {dst}")
+            return
+
     # Print expression/string
     m = re.match(r'print\s+(.+)', content, re.IGNORECASE)
     if m:
@@ -785,7 +830,7 @@ def execute_lines(lines, filename="<stdin>"):
     
     for line_num, raw in enumerate(lines, 1):
         line = raw.rstrip("\n")
-        stripped = line.strip()
+        stripped = apply_language_rules(line.strip())
         low = stripped.lower()
         
         try:
@@ -859,7 +904,7 @@ def execute_lines(lines, filename="<stdin>"):
                 
             # ===== INDENTED CONTENT =====
             else:
-                content = line.strip()
+                content = apply_language_rules(line.strip())
                 
                 if mode == "start":
                     execute_block_command(content, start_cmds)
@@ -924,6 +969,7 @@ def main():
     print(f"[Rijwal_Lang] 🚀 v{VERSION} - Running {os.path.basename(resolved)}")
     
     try:
+        load_language_rules()
         run_file(resolved)
         print("\n[Rijwal_Lang] ✅ Completed")
     except RijwalError as e:
