@@ -51,6 +51,8 @@ Then open: `http://localhost:5000`
 - Cloud Execute API: `/api/cloud/execute`
 - Compile API: `/api/compile`
 - Executable Export API: `/api/export/executable`
+- Plugins API: `/api/plugins/list`, `/api/plugins/install`, `/api/plugins/auto-update`
+- AI Prompt Update API: `/api/ai/prompt`
 
 ### 2. Write Your First Program
 
@@ -102,6 +104,8 @@ If the suite fails, **do not release** until fixed.
 - 🧬 Evolution Lab for self-evolving language/AI roadmap
 - ☁️ Cloud execution endpoint
 - 🛠️ Tiny compiler + executable export
+- 🧩 Extension / plugin API (self-growing local catalog)
+- 🧠 AI prompt self-update and inline AI syntax support
 
 ### 🛠️ Built-in Functions
 ```rijwal

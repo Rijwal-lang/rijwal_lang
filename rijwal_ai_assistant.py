@@ -84,9 +84,12 @@ class AIAssistant:
         self.conversation_history: List[Dict[str, str]] = []
         self.max_history = 20
         self.local_lm = MiniLanguageModel()
+        self.custom_system_prompt: Optional[str] = None
         
     def _prepare_system_prompt(self) -> str:
         """System prompt for the AI"""
+        if self.custom_system_prompt:
+            return self.custom_system_prompt
         return """You are a helpful code assistant for Rijwal_Lang, a programming language IDE.
 
 You help developers with:
@@ -165,6 +168,16 @@ Built-in functions: 150+. Plugins available: 9 (NumPy, Pandas, Requests, PIL, Ma
             "model": result.get("model", "unknown"),
             "timestamp": result.get("timestamp"),
         }
+
+
+
+    def update_system_prompt(self, new_prompt: str) -> Dict[str, Any]:
+        """Update assistant system prompt dynamically (self-evolving behavior)."""
+        cleaned = (new_prompt or '').strip()
+        if not cleaned:
+            return {'success': False, 'error': 'Prompt cannot be empty'}
+        self.custom_system_prompt = cleaned
+        return {'success': True, 'message': 'System prompt updated'}
 
     def _call_api(self, message: str) -> Dict[str, Any]:
         """

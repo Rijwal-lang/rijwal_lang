@@ -8,9 +8,11 @@ from flask import Flask, request, jsonify, send_from_directory
 import os
 import sys
 import subprocess
+import shutil
 import tempfile
 import json
 import stat
+import re
 from pathlib import Path
 from rijwal_ai_assistant import AIAssistant
 
@@ -28,6 +30,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
 AI_ASSISTANT = AIAssistant(provider='local')
 MISSION_STATEMENT = "Rijwal is the fastest way for beginners to go from idea → working code with AI help."
+PLUGIN_DIR = Path(SCRIPT_DIR) / 'plugins'
+PLUGIN_NAME_RE = re.compile(r'^[A-Za-z0-9_-]+$')
 
 @app.route('/')
 def index():
@@ -287,6 +291,18 @@ def get_docs():
                 'example': 'Every 1 second:\n    Print "Tick"'
             },
             {
+                'name': 'Plugin API',
+                'syntax': 'Use Plugin "name"',
+                'description': 'Load a local plugin into language runtime',
+                'example': 'Use Plugin "math_extra"'
+            },
+            {
+                'name': 'AI inline',
+                'syntax': 'AI "prompt"',
+                'description': 'Ask embedded local AI inside code',
+                'example': 'AI "Explain this program"'
+            },
+            {
                 'name': 'Import',
                 'syntax': 'Import "filename"',
                 'description': 'Import functions from another file',
@@ -408,6 +424,94 @@ def terminal_command():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+
+
+
+@app.route('/api/ai/prompt', methods=['POST'])
+def update_ai_prompt():
+    """Dynamically update AI buddy system prompt."""
+    try:
+        data = request.get_json() or {}
+        prompt = data.get('prompt', '')
+        result = AI_ASSISTANT.update_system_prompt(prompt)
+        if not result.get('success'):
+            return jsonify(result), 400
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/plugins/list', methods=['GET'])
+def list_plugins():
+    """List available and installed plugins."""
+    try:
+        available = []
+        available_dir = PLUGIN_DIR / 'available'
+        if available_dir.exists():
+            for f in sorted(available_dir.glob('*.py')):
+                available.append(f.stem)
+
+        installed = []
+        if PLUGIN_DIR.exists():
+            for f in sorted(PLUGIN_DIR.glob('*.py')):
+                installed.append(f.stem)
+
+        return jsonify({'success': True, 'available': available, 'installed': installed})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/plugins/install', methods=['POST'])
+def install_plugin():
+    """Install a plugin from local available catalog to active plugins dir."""
+    try:
+        data = request.get_json() or {}
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify({'success': False, 'error': 'No plugin name provided'}), 400
+        if not PLUGIN_NAME_RE.fullmatch(name):
+            return jsonify({'success': False, 'error': 'Invalid plugin name'}), 400
+
+        src = PLUGIN_DIR / 'available' / f'{name}.py'
+        dst = PLUGIN_DIR / f'{name}.py'
+        if not src.exists():
+            return jsonify({'success': False, 'error': f'Plugin not found in catalog: {name}'}), 404
+
+        PLUGIN_DIR.mkdir(exist_ok=True, parents=True)
+        shutil.copyfile(src, dst)
+        return jsonify({'success': True, 'installed': name, 'path': str(dst)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/plugins/auto-update', methods=['POST'])
+def auto_update_plugins():
+    """Auto-install missing plugins from local index catalog."""
+    try:
+        index_file = PLUGIN_DIR / 'index.json'
+        if not index_file.exists():
+            return jsonify({'success': False, 'error': 'plugins/index.json not found'}), 404
+
+        index_data = json.loads(index_file.read_text(encoding='utf-8'))
+        installed = []
+        for item in index_data.get('plugins', []):
+            name = item.get('name')
+            if not name:
+                continue
+            if not isinstance(name, str) or not PLUGIN_NAME_RE.fullmatch(name):
+                continue
+            dst = PLUGIN_DIR / f'{name}.py'
+            if dst.exists():
+                continue
+            src_rel = item.get('source', f'plugins/available/{name}.py')
+            src = Path(SCRIPT_DIR) / src_rel
+            if src.exists():
+                shutil.copyfile(src, dst)
+                installed.append(name)
+
+        return jsonify({'success': True, 'installed': installed})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/evolve', methods=['POST'])
 def evolve_project():

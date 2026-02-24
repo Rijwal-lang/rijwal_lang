@@ -1,0 +1,5 @@
+{
+  "plugins": [
+    {"name": "math_extra", "source": "plugins/available/math_extra.py"}
+  ]
+}

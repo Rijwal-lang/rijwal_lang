@@ -12,6 +12,7 @@ import shutil
 import textwrap
 import math
 import random
+import importlib.util
 from fractions import Fraction
 from pathlib import Path
 
@@ -27,6 +28,8 @@ BUILTIN_FUNCS = {}
 
 VERSION = "0.13"
 EXTENSIONS = ['.Rijwal_lang', '.Rijwal_Lang', '.RL', '.rl', '.rjwl']
+PLUGIN_DIR = Path(__file__).resolve().parent / 'plugins'
+LOADED_PLUGINS = {}
 
 # ================ ERROR HANDLING ================
 
@@ -301,6 +304,44 @@ def builtin_iif(condition, true_value, false_value):
     """Inline if expression"""
     return true_value if condition else false_value
 
+
+
+def load_plugin(name):
+    """Load plugin from plugins/<name>.py and register functions in BUILTIN_FUNCS."""
+    plugin_path = PLUGIN_DIR / f"{name}.py"
+    if not plugin_path.exists():
+        raise RijwalRuntimeError(f"Plugin not found: {name}")
+
+    if name in LOADED_PLUGINS:
+        return LOADED_PLUGINS[name]
+
+    spec = importlib.util.spec_from_file_location(f"rijwal_plugin_{name}", str(plugin_path))
+    if spec is None or spec.loader is None:
+        raise RijwalRuntimeError(f"Unable to load plugin: {name}")
+
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    if not hasattr(mod, 'register'):
+        raise RijwalRuntimeError(f"Plugin '{name}' must expose register()")
+
+    exported = mod.register()
+    if not isinstance(exported, dict):
+        raise RijwalRuntimeError(f"Plugin '{name}' register() must return dict")
+
+    for key, fn in exported.items():
+        if callable(fn):
+            BUILTIN_FUNCS[key] = fn
+            BUILTIN_DOCS[f"{key}(...)"] = f"Plugin function from {name}"
+
+    LOADED_PLUGINS[name] = {'functions': list(exported.keys())}
+    return LOADED_PLUGINS[name]
+
+
+def builtin_loaded_plugins():
+    """Return names of loaded plugins"""
+    return list(LOADED_PLUGINS.keys())
+
 # Register built-in functions
 BUILTIN_FUNCS = {
     'len': builtin_len,
@@ -349,6 +390,7 @@ BUILTIN_FUNCS = {
     'now': builtin_now,
     'sleep': builtin_sleep,
     'iif': builtin_iif,
+    'plugins': builtin_loaded_plugins,
 }
 
 BUILTIN_DOCS = {
@@ -398,6 +440,7 @@ BUILTIN_DOCS = {
     'now()': 'Current Unix timestamp',
     'sleep(seconds)': 'Pause execution',
     'iif(condition, true_value, false_value)': 'Inline conditional selection',
+    'plugins()': 'List loaded plugins',
 }
 
 # ================ HELPERS ================
@@ -614,6 +657,25 @@ def execute_block_command(content, output_buffer=None):
         var = m.group(1)
         user = input(f"➤ {var}: ")
         VARS[var] = parse_input(user)
+        return
+
+    # Use Plugin "name"
+    m = re.match(r'use\s+plugin\s+"([^"]+)"\s*$', content, re.IGNORECASE)
+    if m:
+        load_plugin(m.group(1).strip())
+        output_buffer.append(f"[plugin] loaded {m.group(1).strip()}")
+        return
+
+    # AI inline prompt
+    m = re.match(r'ai\s+"(.+)"\s*$', content, re.IGNORECASE)
+    if m:
+        try:
+            from rijwal_ai_assistant import AIAssistant
+            assistant = AIAssistant(provider='local')
+            result = assistant.chat(m.group(1))
+            output_buffer.append(str(result.get('response', '')))
+        except Exception as e:
+            raise RijwalRuntimeError(f"AI command failed: {e}")
         return
 
     # Print expression/string

@@ -76,6 +76,29 @@ def main() -> int:
         assert_true(j.get('success') is True, f"export failed: {j}")
         assert_true(bool(j.get('path')), 'export path missing')
 
+
+    def t_plugins() -> None:
+        r = client.get('/api/plugins/list')
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"plugins list failed: {j}")
+
+        install_r = client.post('/api/plugins/install', json={'name': 'math_extra'})
+        install_j = install_r.get_json() or {}
+        assert_true(install_r.status_code == 200, f"status={install_r.status_code}")
+        assert_true(install_j.get('success') is True, f"plugin install failed: {install_j}")
+
+        auto_r = client.post('/api/plugins/auto-update', json={})
+        auto_j = auto_r.get_json() or {}
+        assert_true(auto_r.status_code == 200, f"status={auto_r.status_code}")
+        assert_true(auto_j.get('success') is True, f"plugin auto-update failed: {auto_j}")
+
+    def t_ai_prompt_update() -> None:
+        r = client.post('/api/ai/prompt', json={'prompt': 'You are Rijwal evolving mentor.'})
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"ai prompt update failed: {j}")
+
     def t_terminal() -> None:
         help_r = client.post('/api/terminal', json={'command': 'help', 'code': ''})
         help_j = help_r.get_json() or {}
@@ -110,6 +133,8 @@ def main() -> int:
         ('cloud_execute', t_cloud_execute),
         ('compile', t_compile),
         ('export', t_export),
+        ('plugins', t_plugins),
+        ('ai_prompt_update', t_ai_prompt_update),
         ('terminal', t_terminal),
         ('ai_assist', t_ai_assist),
         ('evolve', t_evolve),
