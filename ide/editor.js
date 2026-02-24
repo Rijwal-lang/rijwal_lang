@@ -259,3 +259,77 @@ document.addEventListener('DOMContentLoaded', () => {
     addConsoleOutput('✨ Rijwal_Lang IDE Ready!', 'info');
     addConsoleOutput(`📄 Editing: ${currentFile}`, 'info');
 });
+
+
+// ========== AI BUDDY ==========
+const aiBuddy = document.getElementById('aiBuddy');
+const aiBuddyHeader = document.getElementById('aiBuddyHeader');
+const aiBuddyChat = document.getElementById('aiBuddyChat');
+const aiBuddyInput = document.getElementById('aiBuddyInput');
+const aiBuddySend = document.getElementById('aiBuddySend');
+
+function appendAiLine(message, role='ai') {
+    const line = document.createElement('div');
+    line.className = `ai-line ${role}`;
+    line.textContent = message;
+    aiBuddyChat.appendChild(line);
+    aiBuddyChat.scrollTop = aiBuddyChat.scrollHeight;
+}
+
+async function askAiBuddy() {
+    const prompt = aiBuddyInput.value.trim();
+    if (!prompt) return;
+
+    appendAiLine(prompt, 'user');
+    aiBuddyInput.value = '';
+
+    try {
+        const response = await fetch('/api/ai-assist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, code: editor.value })
+        });
+        const data = await response.json();
+        if (data.success) {
+            appendAiLine(data.response, 'ai');
+        } else {
+            appendAiLine('AI error: ' + (data.error || 'unknown'), 'ai');
+        }
+    } catch (error) {
+        appendAiLine('Network error while talking to AI Buddy.', 'ai');
+    }
+}
+
+aiBuddySend.addEventListener('click', askAiBuddy);
+aiBuddyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') askAiBuddy();
+});
+
+(function makeBuddyDraggable() {
+    let active = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    aiBuddyHeader.addEventListener('pointerdown', (e) => {
+        active = true;
+        const rect = aiBuddy.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        aiBuddyHeader.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('pointermove', (e) => {
+        if (!active) return;
+        const x = Math.max(0, Math.min(window.innerWidth - aiBuddy.offsetWidth, e.clientX - offsetX));
+        const y = Math.max(0, Math.min(window.innerHeight - aiBuddy.offsetHeight, e.clientY - offsetY));
+        aiBuddy.style.left = `${x}px`;
+        aiBuddy.style.top = `${y}px`;
+        aiBuddy.style.right = 'auto';
+        aiBuddy.style.bottom = 'auto';
+    });
+
+    window.addEventListener('pointerup', () => {
+        active = false;
+        aiBuddyHeader.style.cursor = 'grab';
+    });
+})();

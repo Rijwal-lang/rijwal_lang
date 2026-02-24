@@ -78,6 +78,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 - 💾 Save/load projects
 - 📚 Built-in documentation
 - 🎓 Code examples
+- 🤖 Draggable AI Buddy (LLM-backed with safe fallback)
 
 ### 🛠️ Built-in Functions
 ```rijwal

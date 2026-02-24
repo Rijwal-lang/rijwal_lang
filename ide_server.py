@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import json
 from pathlib import Path
+from rijwal_ai_assistant import AIAssistant
 
 try:
     from rijwal_lang_enhanced import BUILTIN_DOCS
@@ -24,6 +25,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 # Get the directory of the engine
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
+AI_ASSISTANT = AIAssistant(provider='openai')
 
 @app.route('/')
 def index():
@@ -228,6 +230,29 @@ def get_docs():
         'builtin_functions': builtin_functions
     }
     return jsonify(docs)
+
+
+
+@app.route('/api/ai-assist', methods=['POST'])
+def ai_assist():
+    """AI assistant endpoint for IDE buddy."""
+    try:
+        data = request.get_json() or {}
+        prompt = data.get('prompt', '').strip()
+        code = data.get('code', '')
+
+        if not prompt:
+            return jsonify({'success': False, 'error': 'No prompt provided'}), 400
+
+        result = AI_ASSISTANT.chat(prompt, code_context=code)
+        return jsonify({
+            'success': True,
+            'response': result.get('response', ''),
+            'provider': result.get('provider', 'mock'),
+            'model': result.get('model', 'unknown')
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
