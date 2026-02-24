@@ -55,6 +55,7 @@ Then open: `http://localhost:5000`
 - AI Prompt Update API: `/api/ai/prompt`
 - VM Transition APIs: `/api/vm/compile`, `/api/vm/execute`
 - Collaboration APIs: `/api/collab/session`, `/api/collab/op`
+- Combined capabilities API: `/api/capabilities`
 
 ### 2. Write Your First Program
 

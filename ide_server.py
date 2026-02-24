@@ -209,6 +209,44 @@ def run_bytecode(bytecode):
     return {'output': out, 'locals': locals_map}
 
 
+
+
+def get_capabilities() -> dict:
+    """Combined platform capability map for IDE/clients."""
+    return {
+        'language': {
+            'custom_file_formats': ['.Rijwal_lang', '.RL', '.rjwl'],
+            'inline_ai_syntax': 'AI "prompt"',
+            'plugin_syntax': 'Use Plugin "name"',
+            'adaptive_syntax': 'Adapt Syntax "old" => "new"',
+            'self_hosting_target': True,
+        },
+        'execution': {
+            'local_execute': '/api/execute',
+            'cloud_execute': '/api/cloud/execute',
+            'compile': '/api/compile',
+            'vm_compile': '/api/vm/compile',
+            'vm_execute': '/api/vm/execute',
+            'export_executable': '/api/export/executable',
+            'os_level_exec': 'via exported python executable',
+        },
+        'extensions': {
+            'list': '/api/plugins/list',
+            'install': '/api/plugins/install',
+            'auto_update': '/api/plugins/auto-update',
+        },
+        'ai': {
+            'assist': '/api/ai-assist',
+            'update_prompt': '/api/ai/prompt',
+            'evolution_lab': '/api/evolve',
+        },
+        'collaboration': {
+            'create_session': '/api/collab/session',
+            'read_session': '/api/collab/session/<id>',
+            'apply_operation': '/api/collab/op',
+        }
+    }
+
 def ensure_exports_dir():
     exports_dir = os.path.join(SCRIPT_DIR, 'exports')
     os.makedirs(exports_dir, exist_ok=True)
@@ -350,14 +388,20 @@ def get_docs():
                 'example': 'Import "utils.RL"'
             }
         ],
-        'builtin_functions': builtin_functions
+        'builtin_functions': builtin_functions,
+        'platform_capabilities': get_capabilities()
     }
     return jsonify(docs)
 
 
-
-
-
+@app.route('/api/capabilities', methods=['GET'])
+def capabilities():
+    """Return a combined machine-readable roadmap/capabilities map."""
+    return jsonify({
+        'success': True,
+        'mission': MISSION_STATEMENT,
+        'capabilities': get_capabilities(),
+    })
 
 
 @app.route('/api/cloud/execute', methods=['POST'])
@@ -436,6 +480,7 @@ def terminal_command():
                 '  run         Run current editor code',
                 '  version     Show language version',
                 '  docs        Show docs endpoint',
+                '  capabilities Show combined platform capabilities endpoint',
                 '  health      Show API health endpoint',
                 '  clear       Clear terminal output (client side)',
                 '  Any other text is executed as Rijwal code snippet.'
@@ -449,6 +494,9 @@ def terminal_command():
 
         if command_lower == 'health':
             return jsonify({'success': True, 'output': ['Open health API: /api/health']})
+
+        if command_lower == 'capabilities':
+            return jsonify({'success': True, 'output': ['Open capabilities API: /api/capabilities']})
 
         if command_lower == 'run':
             return jsonify(run_rijwal_code(current_code, filename='terminal_run.Rijwal_lang', timeout=30))

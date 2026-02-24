@@ -46,6 +46,15 @@ def main() -> int:
         assert_true(bool(j.get('mission')), 'mission missing in docs')
         assert_true(isinstance(j.get('builtin_functions'), list), 'builtin_functions missing')
 
+
+    def t_capabilities() -> None:
+        r = client.get('/api/capabilities')
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"capabilities failed: {j}")
+        caps = j.get('capabilities') or {}
+        assert_true('execution' in caps and 'extensions' in caps and 'ai' in caps, 'capabilities sections missing')
+
     def t_execute() -> None:
         r = client.post('/api/execute', json={'code': 'When Program Starts:\n    Print "suite"'})
         j = r.get_json() or {}
@@ -164,6 +173,7 @@ def main() -> int:
     for name, fn in [
         ('health', t_health),
         ('docs', t_docs),
+        ('capabilities', t_capabilities),
         ('execute', t_execute),
         ('cloud_execute', t_cloud_execute),
         ('compile', t_compile),
