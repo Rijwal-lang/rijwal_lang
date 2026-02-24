@@ -43,6 +43,9 @@ Rijwal_Lang is a **beginner-friendly programming language** designed for young d
 python ide_server.py
 ```
 Then open: `http://localhost:5000`
+- Modern IDE: `/`
+- Legacy IDE: `/legacy`
+- IDLE info API: `/idle`
 
 ### 2. Write Your First Program
 
@@ -78,7 +81,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 
 ### 🛠️ Built-in Functions
 ```rijwal
-len(x)              # String length
+len(x)              # Length of string/container
 type(x)             # Get type
 abs(x)              # Absolute value
 max(a, b, ...)      # Maximum
@@ -89,6 +92,14 @@ upper(s), lower(s)  # Case conversion
 split(s, sep)       # Split string
 reverse(x)          # Reverse
 sort(list)          # Sort list
+contains(list_or_text, x) # Membership check
+replace(s, old, new) # Replace text
+startswith(s, prefix) # Starts with
+endswith(s, suffix)  # Ends with
+append(list, x)      # Return list with appended item
+sum(a, b, ...)       # Sum numbers
+keys(dict_obj)       # Dictionary keys
+values(dict_obj)     # Dictionary values
 ```
 
 ---
@@ -393,3 +404,10 @@ Made with ❤️ for young developers
 **Happy Coding!** ✨
 
 </div>
+
+
+### 3. Open IDLE (Interactive Shell)
+```bash
+python rijwal_idle.py
+```
+Use `:exit` to quit.

@@ -4,7 +4,7 @@ Rijwal_Lang Web Server
 Serves the IDE and executes Rijwal_Lang code
 """
 
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 import os
 import sys
 import subprocess
@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 app = Flask(__name__)
+IDE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ide")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 # Get the directory of the engine
@@ -21,8 +22,27 @@ ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
 
 @app.route('/')
 def index():
-    """Serve the IDE"""
-    return render_template('index.html')
+    """Serve the modern IDE"""
+    return send_from_directory(IDE_DIR, 'index.html')
+
+@app.route('/legacy')
+def legacy_ide():
+    """Serve legacy IDE with games."""
+    return send_from_directory(SCRIPT_DIR, 'ide_with_games.html')
+
+@app.route('/idle')
+def idle_info():
+    """Expose IDLE launcher information."""
+    return jsonify({
+        'name': 'Rijwal_Lang IDLE',
+        'launch': f'{sys.executable} rijwal_idle.py',
+        'description': 'Interactive shell for quick Rijwal_Lang testing.'
+    })
+
+@app.route('/ide/<path:asset_path>')
+def ide_assets(asset_path):
+    """Serve modern IDE static assets (JS/CSS)."""
+    return send_from_directory(IDE_DIR, asset_path)
 
 @app.route('/api/execute', methods=['POST'])
 def execute_code():
@@ -196,7 +216,7 @@ def get_docs():
             }
         ],
         'builtin_functions': [
-            {'name': 'len(x)', 'description': 'Length of string'},
+            {'name': 'len(x)', 'description': 'Length of string/container'},
             {'name': 'type(x)', 'description': 'Get type of value'},
             {'name': 'abs(x)', 'description': 'Absolute value'},
             {'name': 'max(a, b, ...)', 'description': 'Maximum value'},
@@ -209,9 +229,28 @@ def get_docs():
             {'name': 'lower(s)', 'description': 'Lowercase string'},
             {'name': 'split(s, sep)', 'description': 'Split string'},
             {'name': 'reverse(x)', 'description': 'Reverse string or list'},
+            {'name': 'sort(list)', 'description': 'Sort list values'},
+            {'name': 'sum(a, b, ...)', 'description': 'Sum numeric values'},
+            {'name': 'append(list, item)', 'description': 'Return a new list with item appended'},
+            {'name': 'contains(container, item)', 'description': 'Check membership'},
+            {'name': 'replace(text, old, new)', 'description': 'Replace text in a string'},
+            {'name': 'startswith(text, prefix)', 'description': 'Check starting text'},
+            {'name': 'endswith(text, suffix)', 'description': 'Check ending text'},
+            {'name': 'keys(dict)', 'description': 'Get dictionary keys'},
+            {'name': 'values(dict)', 'description': 'Get dictionary values'},
         ]
     }
     return jsonify(docs)
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Simple health endpoint for IDE and IDLE integrations."""
+    return jsonify({
+        'success': True,
+        'engine_exists': os.path.exists(ENGINE_PATH),
+        'ide_exists': os.path.exists(os.path.join(IDE_DIR, 'index.html')),
+        'idle_exists': os.path.exists(os.path.join(SCRIPT_DIR, 'rijwal_idle.py')),
+    })
 
 @app.errorhandler(404)
 def not_found(error):

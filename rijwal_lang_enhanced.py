@@ -63,7 +63,9 @@ def debug(msg):
 # ================ BUILT-IN FUNCTIONS ================
 
 def builtin_len(obj):
-    """Return length of string or list"""
+    """Return length of a string or container"""
+    if isinstance(obj, (str, list, tuple, dict, set)):
+        return len(obj)
     return len(str(obj))
 
 def builtin_type(obj):
@@ -157,6 +159,46 @@ def builtin_sort(lst):
     """Sort a list"""
     return sorted(lst)
 
+def builtin_sum(*args):
+    """Return sum of numeric values"""
+    if len(args) == 1 and isinstance(args[0], (list, tuple)):
+        return sum(args[0])
+    return sum(args)
+
+def builtin_append(lst, item):
+    """Append an item to a list and return a new list"""
+    if not isinstance(lst, list):
+        raise RijwalTypeError("append() expects a list as first argument")
+    return [*lst, item]
+
+def builtin_contains(container, item):
+    """Check whether item is inside a container"""
+    return item in container
+
+def builtin_replace(text, old, new):
+    """Replace text inside a string"""
+    return str(text).replace(str(old), str(new))
+
+def builtin_startswith(text, prefix):
+    """Check if string starts with prefix"""
+    return str(text).startswith(str(prefix))
+
+def builtin_endswith(text, suffix):
+    """Check if string ends with suffix"""
+    return str(text).endswith(str(suffix))
+
+def builtin_keys(obj):
+    """Return dictionary keys as a list"""
+    if not isinstance(obj, dict):
+        raise RijwalTypeError("keys() expects a dictionary")
+    return list(obj.keys())
+
+def builtin_values(obj):
+    """Return dictionary values as a list"""
+    if not isinstance(obj, dict):
+        raise RijwalTypeError("values() expects a dictionary")
+    return list(obj.values())
+
 # Register built-in functions
 BUILTIN_FUNCS = {
     'len': builtin_len,
@@ -175,6 +217,14 @@ BUILTIN_FUNCS = {
     'join': builtin_join,
     'reverse': builtin_reverse,
     'sort': builtin_sort,
+    'sum': builtin_sum,
+    'append': builtin_append,
+    'contains': builtin_contains,
+    'replace': builtin_replace,
+    'startswith': builtin_startswith,
+    'endswith': builtin_endswith,
+    'keys': builtin_keys,
+    'values': builtin_values,
 }
 
 # ================ HELPERS ================
@@ -211,6 +261,72 @@ def resolve_file(name, base="."):
     
     return None
 
+def split_arguments(arg_string):
+    """Split comma-separated function arguments while respecting nesting and quotes."""
+    if not arg_string.strip():
+        return []
+
+    args = []
+    current = []
+    depth = 0
+    in_quote = None
+    escape = False
+
+    for ch in arg_string:
+        if escape:
+            current.append(ch)
+            escape = False
+            continue
+
+        if ch == "\\":
+            current.append(ch)
+            escape = True
+            continue
+
+        if in_quote:
+            current.append(ch)
+            if ch == in_quote:
+                in_quote = None
+            continue
+
+        if ch in ('"', "'"):
+            in_quote = ch
+            current.append(ch)
+            continue
+
+        if ch in '([{':
+            depth += 1
+            current.append(ch)
+            continue
+
+        if ch in ')]}':
+            depth = max(0, depth - 1)
+            current.append(ch)
+            continue
+
+        if ch == ',' and depth == 0:
+            token = ''.join(current).strip()
+            if token:
+                args.append(token)
+            current = []
+            continue
+
+        current.append(ch)
+
+    token = ''.join(current).strip()
+    if token:
+        args.append(token)
+
+    return args
+
+
+def parse_assignment_value(value_expr):
+    """Evaluate assignment expression, preserving quoted string literals."""
+    expr = value_expr.strip()
+    if (expr.startswith('"') and expr.endswith('"')) or        (expr.startswith("'") and expr.endswith("'")):
+        return expr[1:-1]
+    return safe_eval(expr)
+
 def parse_input(v):
     """Parse user input with type detection"""
     v = v.strip()
@@ -235,13 +351,102 @@ def safe_eval(expr, local_vars=None):
     try:
         if local_vars is None:
             local_vars = {}
-        
+
+        user_funcs = {
+            fname: (lambda *vals, _fname=fname: call_function_values(_fname, list(vals)))
+            for fname in FUNCS
+        }
+
         # Merge with VARS
-        context = {**VARS, **local_vars, **BUILTIN_FUNCS}
-        
+        context = {**VARS, **local_vars, **BUILTIN_FUNCS, **user_funcs}
+
         return eval(expr, {"__builtins__": {}}, context)
+    except RijwalError:
+        raise
     except Exception as e:
         raise RijwalRuntimeError(f"Evaluation error: {e}")
+
+def call_function_values(name, arg_values=None):
+    """Call a user-defined function with already-evaluated argument values."""
+    if arg_values is None:
+        arg_values = []
+
+    if name not in FUNCS:
+        raise RijwalRuntimeError(f"Function not defined: {name}")
+
+    func = FUNCS[name]
+    if len(arg_values) != len(func["args"]):
+        raise RijwalRuntimeError(
+            f"Function '{name}' expects {len(func['args'])} argument(s), got {len(arg_values)}"
+        )
+
+    local = dict(zip(func["args"], arg_values))
+
+    for stmt in func["body"]:
+        if stmt.lower().startswith("return "):
+            return safe_eval(stmt[7:], local)
+    return None
+
+def call_function(name, arg_exprs=None):
+    """Call a user-defined function and return its return value (if any)."""
+    if arg_exprs is None:
+        arg_exprs = []
+
+    if name not in FUNCS:
+        raise RijwalRuntimeError(f"Function not defined: {name}")
+
+    values = [safe_eval(arg.strip()) for arg in arg_exprs if arg.strip()]
+    return call_function_values(name, values)
+
+def execute_block_command(content, output_buffer=None):
+    """Execute one command inside start/timer blocks."""
+    if output_buffer is None:
+        output_buffer = []
+
+    # Print function_call(...)
+    m = re.match(r'print\s+(\w+)\s*\((.*?)\)\s*$', content, re.IGNORECASE)
+    if m and m.group(1) in FUNCS:
+        fname = m.group(1)
+        arg_exprs = split_arguments(m.group(2))
+        result = call_function(fname, arg_exprs)
+        output_buffer.append("" if result is None else str(result))
+        return
+
+    # Plain function call
+    m = re.match(r'(\w+)\s*\((.*?)\)\s*$', content, re.IGNORECASE)
+    if m and m.group(1) in FUNCS:
+        fname = m.group(1)
+        arg_exprs = split_arguments(m.group(2))
+        call_function(fname, arg_exprs)
+        return
+
+    # Let assignment
+    m = re.match(r'let\s+(\w+)\s*=\s*(.+)', content, re.IGNORECASE)
+    if m:
+        name, val = m.group(1), m.group(2)
+        VARS[name] = parse_assignment_value(val)
+        return
+
+    # Input
+    m = re.match(r'input\s+(\w+)', content, re.IGNORECASE)
+    if m:
+        var = m.group(1)
+        user = input(f"➤ {var}: ")
+        VARS[var] = parse_input(user)
+        return
+
+    # Print expression/string
+    m = re.match(r'print\s+(.+)', content, re.IGNORECASE)
+    if m:
+        expr = m.group(1)
+        if (expr.startswith('"') and expr.endswith('"')) or \
+           (expr.startswith("'") and expr.endswith("'")):
+            output_buffer.append(expr[1:-1])
+        else:
+            output_buffer.append(str(safe_eval(expr)))
+        return
+
+    raise RijwalSyntaxError(f"Unsupported statement in block: {content}")
 
 # ================ PYTHON BLOCK ================
 
@@ -337,7 +542,8 @@ def execute_lines(lines, filename="<stdin>"):
     
     for line_num, raw in enumerate(lines, 1):
         line = raw.rstrip("\n")
-        low = line.strip().lower()
+        stripped = line.strip()
+        low = stripped.lower()
         
         try:
             if not is_indented(raw):
@@ -348,7 +554,7 @@ def execute_lines(lines, filename="<stdin>"):
                     continue
                 
                 # ===== IMPORT =====
-                m = re.match(r'import\s+"(.+?)"', low)
+                m = re.match(r'import\s+"(.+?)"', stripped, re.IGNORECASE)
                 if m:
                     file = resolve_file(m.group(1), os.path.dirname(filename))
                     if file:
@@ -358,18 +564,15 @@ def execute_lines(lines, filename="<stdin>"):
                     continue
                 
                 # ===== LET (Variable) =====
-                m = re.match(r'let\s+(\w+)\s*=\s*(.+)', low)
+                m = re.match(r'let\s+(\w+)\s*=\s*(.+)', stripped, re.IGNORECASE)
                 if m:
                     name, val = m.group(1), m.group(2)
-                    try:
-                        VARS[name] = safe_eval(val)
-                    except:
-                        VARS[name] = val.strip('"\'')
+                    VARS[name] = parse_assignment_value(val)
                     debug(f"Set {name} = {VARS[name]}")
                     continue
                 
                 # ===== INPUT =====
-                m = re.match(r'input\s+(\w+)', low)
+                m = re.match(r'input\s+(\w+)', stripped, re.IGNORECASE)
                 if m:
                     var = m.group(1)
                     user = input(f"➤ {var}: ")
@@ -377,10 +580,10 @@ def execute_lines(lines, filename="<stdin>"):
                     continue
                 
                 # ===== FUNCTION =====
-                m = re.match(r'function\s+(\w+)\s*\((.*?)\)\s*:', low)
+                m = re.match(r'function\s+(\w+)\s*\((.*?)\)\s*:', stripped, re.IGNORECASE)
                 if m:
                     fname = m.group(1)
-                    args = [a.strip() for a in m.group(2).split(",") if a.strip()]
+                    args = split_arguments(m.group(2))
                     FUNCS[fname] = {"args": args, "body": []}
                     current_func = fname
                     mode = "function"
@@ -393,7 +596,7 @@ def execute_lines(lines, filename="<stdin>"):
                     continue
                 
                 # ===== TIMER =====
-                m = re.match(r'every\s+(\d+)\s+second', low)
+                m = re.match(r'every\s+(\d+)\s+second', stripped, re.IGNORECASE)
                 if m:
                     timer_interval = int(m.group(1))
                     mode = "timer"
@@ -416,41 +619,12 @@ def execute_lines(lines, filename="<stdin>"):
                 content = line.strip()
                 
                 if mode == "start":
-                    # Function call
-                    m = re.match(r'print\s+(\w+)\s*\((.*?)\)', content, re.IGNORECASE)
-                    if m and m.group(1) in FUNCS:
-                        fname = m.group(1)
-                        vals = [safe_eval(v.strip()) for v in m.group(2).split(",") if v.strip()]
-                        func = FUNCS[fname]
-                        local = dict(zip(func["args"], vals))
-                        for c in func["body"]:
-                            if c.lower().startswith("return "):
-                                result = safe_eval(c[7:], local)
-                                start_cmds.append(str(result))
-                        continue
-                    
-                    # Print statement
-                    m = re.match(r'print\s+(.+)', content, re.IGNORECASE)
-                    if m:
-                        expr = m.group(1)
-                        # Remove quotes if string literal
-                        if (expr.startswith('"') and expr.endswith('"')) or \
-                           (expr.startswith("'") and expr.endswith("'")):
-                            start_cmds.append(expr[1:-1])
-                        else:
-                            start_cmds.append(str(safe_eval(expr)))
-                        continue
-                
+                    execute_block_command(content, start_cmds)
+                    continue
+
                 elif mode == "timer":
-                    m = re.match(r'print\s+(.+)', content, re.IGNORECASE)
-                    if m:
-                        expr = m.group(1)
-                        if (expr.startswith('"') and expr.endswith('"')) or \
-                           (expr.startswith("'") and expr.endswith("'")):
-                            timer_cmds.append(expr[1:-1])
-                        else:
-                            timer_cmds.append(str(safe_eval(expr)))
-                        continue
+                    timer_cmds.append(content)
+                    continue
                 
                 elif mode in ("python", "js", "function"):
                     buffer.append(content)
@@ -477,8 +651,11 @@ def execute_lines(lines, filename="<stdin>"):
             print(f"[Rijwal_Lang] ⏱️  Timer: every {timer_interval} second(s)")
             try:
                 while True:
+                    timer_output = []
                     for t in timer_cmds:
-                        print(t)
+                        execute_block_command(t, timer_output)
+                    for out in timer_output:
+                        print(out)
                     time.sleep(timer_interval)
             except KeyboardInterrupt:
                 print("\n[Rijwal_Lang] ⏹️  Timer stopped")

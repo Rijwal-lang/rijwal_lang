@@ -207,9 +207,15 @@ Let rounded = round(3.7)   # 4
 
 ### Utility Functions
 ```rijwal
-Let t = type(42)           # "int"
-Let reversed = reverse("hello")  # "olleh"
+Let t = type(42)                 # "int"
+Let reversed = reverse("hello") # "olleh"
 Let sorted = sort([3, 1, 2])     # [1, 2, 3]
+Let total = sum(1, 2, 3, 4)      # 10
+Let extended = append([1, 2], 3) # [1, 2, 3]
+Let has_b = contains("abc", "b") # True
+Let clean = replace("a-b-c", "-", ":") # "a:b:c"
+Let starts = startswith("Rijwal", "Ri") # True
+Let ends = endswith("Rijwal", "lang")   # False
 ```
 
 ---
