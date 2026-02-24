@@ -100,6 +100,18 @@ append(list, x)      # Return list with appended item
 sum(a, b, ...)       # Sum numbers
 keys(dict_obj)       # Dictionary keys
 values(dict_obj)     # Dictionary values
+clamp(x, min, max)   # Clamp number to range
+sqrt(x), pow(a, b)   # Math helpers
+randint(a, b)        # Random integer
+choice(items)        # Random item
+shuffle(list)        # Shuffled copy
+trim(s), title(s)    # String cleanup
+first(x), last(x)    # Sequence edges
+take(x, n), drop(x,n)# Sequence slices
+unique(list)         # Remove duplicates
+count(x, v), index(x,v) # Count/find
+now(), sleep(sec)    # Time helpers
+iif(cond, a, b)      # Inline conditional
 ```
 
 ---
@@ -213,6 +225,14 @@ rijwal_lang/
 ├── LANGUAGE_REFERENCE.md  # Complete docs
 └── README.md              # This file
 ```
+
+---
+
+## Roadmap Highlights
+
+- ✅ Expanded built-in function toolkit for math, random, text cleaning, list utilities, and time helpers.
+- ✅ IDE docs endpoint now auto-syncs with runtime built-in docs to avoid drift.
+- 🔜 Planned next: native `If/Else`, loops, and richer data-structure syntax.
 
 ---
 

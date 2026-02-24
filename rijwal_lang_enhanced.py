@@ -10,6 +10,8 @@ import time
 import subprocess
 import shutil
 import textwrap
+import math
+import random
 from fractions import Fraction
 from pathlib import Path
 
@@ -199,6 +201,106 @@ def builtin_values(obj):
         raise RijwalTypeError("values() expects a dictionary")
     return list(obj.values())
 
+def builtin_clamp(value, min_value, max_value):
+    """Clamp a number into a min/max range"""
+    value = float(value)
+    return max(float(min_value), min(float(max_value), value))
+
+def builtin_sqrt(value):
+    """Square root"""
+    return math.sqrt(float(value))
+
+def builtin_pow(base, exponent):
+    """Power operation"""
+    return math.pow(float(base), float(exponent))
+
+def builtin_randint(a, b):
+    """Random integer (inclusive)"""
+    return random.randint(int(a), int(b))
+
+def builtin_choice(items):
+    """Random choice from a list/string"""
+    return random.choice(items)
+
+def builtin_shuffle(items):
+    """Return shuffled copy of list"""
+    if not isinstance(items, list):
+        raise RijwalTypeError("shuffle() expects a list")
+    out = items[:]
+    random.shuffle(out)
+    return out
+
+def builtin_trim(text):
+    """Trim spaces from both ends"""
+    return str(text).strip()
+
+def builtin_lstrip(text):
+    """Trim spaces from left"""
+    return str(text).lstrip()
+
+def builtin_rstrip(text):
+    """Trim spaces from right"""
+    return str(text).rstrip()
+
+def builtin_title(text):
+    """Convert to title case"""
+    return str(text).title()
+
+def builtin_isdigit(text):
+    """Check if all characters are digits"""
+    return str(text).isdigit()
+
+def builtin_isalpha(text):
+    """Check if all characters are letters"""
+    return str(text).isalpha()
+
+def builtin_first(items):
+    """Return first item"""
+    return items[0]
+
+def builtin_last(items):
+    """Return last item"""
+    return items[-1]
+
+def builtin_take(items, n):
+    """Take first n items"""
+    return items[:int(n)]
+
+def builtin_drop(items, n):
+    """Drop first n items"""
+    return items[int(n):]
+
+def builtin_unique(items):
+    """Return unique values while preserving order"""
+    seen = set()
+    out = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            out.append(item)
+    return out
+
+def builtin_count(items, value):
+    """Count occurrences"""
+    return items.count(value)
+
+def builtin_index(items, value):
+    """Find first index of value"""
+    return items.index(value)
+
+def builtin_now():
+    """Current Unix timestamp"""
+    return int(time.time())
+
+def builtin_sleep(seconds):
+    """Sleep for N seconds"""
+    time.sleep(float(seconds))
+    return None
+
+def builtin_iif(condition, true_value, false_value):
+    """Inline if expression"""
+    return true_value if condition else false_value
+
 # Register built-in functions
 BUILTIN_FUNCS = {
     'len': builtin_len,
@@ -225,6 +327,77 @@ BUILTIN_FUNCS = {
     'endswith': builtin_endswith,
     'keys': builtin_keys,
     'values': builtin_values,
+    'clamp': builtin_clamp,
+    'sqrt': builtin_sqrt,
+    'pow': builtin_pow,
+    'randint': builtin_randint,
+    'choice': builtin_choice,
+    'shuffle': builtin_shuffle,
+    'trim': builtin_trim,
+    'lstrip': builtin_lstrip,
+    'rstrip': builtin_rstrip,
+    'title': builtin_title,
+    'isdigit': builtin_isdigit,
+    'isalpha': builtin_isalpha,
+    'first': builtin_first,
+    'last': builtin_last,
+    'take': builtin_take,
+    'drop': builtin_drop,
+    'unique': builtin_unique,
+    'count': builtin_count,
+    'index': builtin_index,
+    'now': builtin_now,
+    'sleep': builtin_sleep,
+    'iif': builtin_iif,
+}
+
+BUILTIN_DOCS = {
+    'len(x)': 'Length of string/container',
+    'type(x)': 'Get type of value',
+    'abs(x)': 'Absolute value',
+    'max(a, b, ...)': 'Maximum value',
+    'min(a, b, ...)': 'Minimum value',
+    'round(x, decimals=0)': 'Round number',
+    'range(start, end=None, step=1)': 'Generate range list',
+    'str(x)': 'Convert to string',
+    'int(x)': 'Convert to integer',
+    'float(x)': 'Convert to float',
+    'upper(s)': 'Uppercase string',
+    'lower(s)': 'Lowercase string',
+    'split(s, sep=" ")': 'Split string',
+    'join(list, sep=" ")': 'Join list to string',
+    'reverse(x)': 'Reverse string/list',
+    'sort(list)': 'Sort list values',
+    'sum(a, b, ...)': 'Sum numbers',
+    'append(list, item)': 'Return list with appended item',
+    'contains(container, item)': 'Membership check',
+    'replace(text, old, new)': 'Replace text',
+    'startswith(text, prefix)': 'Check starts with prefix',
+    'endswith(text, suffix)': 'Check ends with suffix',
+    'keys(dict)': 'Dictionary keys',
+    'values(dict)': 'Dictionary values',
+    'clamp(value, min, max)': 'Clamp a number to range',
+    'sqrt(x)': 'Square root',
+    'pow(base, exponent)': 'Power',
+    'randint(a, b)': 'Random integer (inclusive)',
+    'choice(items)': 'Random choice from sequence',
+    'shuffle(list)': 'Shuffled list copy',
+    'trim(text)': 'Trim spaces on both ends',
+    'lstrip(text)': 'Trim spaces on left',
+    'rstrip(text)': 'Trim spaces on right',
+    'title(text)': 'Title-case text',
+    'isdigit(text)': 'Whether string is all digits',
+    'isalpha(text)': 'Whether string is all letters',
+    'first(items)': 'First item in sequence',
+    'last(items)': 'Last item in sequence',
+    'take(items, n)': 'First n items',
+    'drop(items, n)': 'Items after first n',
+    'unique(items)': 'Remove duplicates preserve order',
+    'count(items, value)': 'Count value occurrences',
+    'index(items, value)': 'First index of value',
+    'now()': 'Current Unix timestamp',
+    'sleep(seconds)': 'Pause execution',
+    'iif(condition, true_value, false_value)': 'Inline conditional selection',
 }
 
 # ================ HELPERS ================
@@ -358,7 +531,15 @@ def safe_eval(expr, local_vars=None):
         }
 
         # Merge with VARS
-        context = {**VARS, **local_vars, **BUILTIN_FUNCS, **user_funcs}
+        context = {
+            **VARS,
+            **local_vars,
+            **BUILTIN_FUNCS,
+            **user_funcs,
+            "true": True,
+            "false": False,
+            "null": None,
+        }
 
         return eval(expr, {"__builtins__": {}}, context)
     except RijwalError:

@@ -12,6 +12,11 @@ import tempfile
 import json
 from pathlib import Path
 
+try:
+    from rijwal_lang_enhanced import BUILTIN_DOCS
+except Exception:
+    BUILTIN_DOCS = {}
+
 app = Flask(__name__)
 IDE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ide")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
@@ -169,6 +174,11 @@ def load_file():
 @app.route('/api/docs', methods=['GET'])
 def get_docs():
     """Get language documentation"""
+    builtin_functions = [
+        {'name': name, 'description': desc}
+        for name, desc in BUILTIN_DOCS.items()
+    ]
+
     docs = {
         'version': '0.13',
         'statements': [
@@ -215,30 +225,7 @@ def get_docs():
                 'example': 'Import "utils.RL"'
             }
         ],
-        'builtin_functions': [
-            {'name': 'len(x)', 'description': 'Length of string/container'},
-            {'name': 'type(x)', 'description': 'Get type of value'},
-            {'name': 'abs(x)', 'description': 'Absolute value'},
-            {'name': 'max(a, b, ...)', 'description': 'Maximum value'},
-            {'name': 'min(a, b, ...)', 'description': 'Minimum value'},
-            {'name': 'round(x)', 'description': 'Round number'},
-            {'name': 'str(x)', 'description': 'Convert to string'},
-            {'name': 'int(x)', 'description': 'Convert to integer'},
-            {'name': 'float(x)', 'description': 'Convert to float'},
-            {'name': 'upper(s)', 'description': 'Uppercase string'},
-            {'name': 'lower(s)', 'description': 'Lowercase string'},
-            {'name': 'split(s, sep)', 'description': 'Split string'},
-            {'name': 'reverse(x)', 'description': 'Reverse string or list'},
-            {'name': 'sort(list)', 'description': 'Sort list values'},
-            {'name': 'sum(a, b, ...)', 'description': 'Sum numeric values'},
-            {'name': 'append(list, item)', 'description': 'Return a new list with item appended'},
-            {'name': 'contains(container, item)', 'description': 'Check membership'},
-            {'name': 'replace(text, old, new)', 'description': 'Replace text in a string'},
-            {'name': 'startswith(text, prefix)', 'description': 'Check starting text'},
-            {'name': 'endswith(text, suffix)', 'description': 'Check ending text'},
-            {'name': 'keys(dict)', 'description': 'Get dictionary keys'},
-            {'name': 'values(dict)', 'description': 'Get dictionary values'},
-        ]
+        'builtin_functions': builtin_functions
     }
     return jsonify(docs)
 

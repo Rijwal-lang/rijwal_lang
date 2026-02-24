@@ -216,7 +216,21 @@ Let has_b = contains("abc", "b") # True
 Let clean = replace("a-b-c", "-", ":") # "a:b:c"
 Let starts = startswith("Rijwal", "Ri") # True
 Let ends = endswith("Rijwal", "lang")   # False
+Let limited = clamp(120, 0, 100) # 100
+Let root = sqrt(81)              # 9.0
+Let power = pow(2, 8)            # 256.0
+Let any = choice(["a", "b", "c"])
+Let tags = unique(["a", "a", "b"]) # ["a", "b"]
+Let epoch = now()
 ```
+
+
+### New Built-in Categories
+- **Math**: `clamp`, `sqrt`, `pow`
+- **Random**: `randint`, `choice`, `shuffle`
+- **String cleanup**: `trim`, `lstrip`, `rstrip`, `title`, `isdigit`, `isalpha`
+- **Sequence helpers**: `first`, `last`, `take`, `drop`, `unique`, `count`, `index`
+- **Time/flow**: `now`, `sleep`, `iif`
 
 ---
 
