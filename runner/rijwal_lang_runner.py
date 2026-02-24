@@ -1,28 +1,40 @@
-# Rijwal_Lang Runner v0.12 — FINAL FIX
-# NO recursion, NO sys.executable
+# Rijwal_Lang Runner (legacy compatibility + modern engine fallback)
 
 import sys
 import os
 import subprocess
 
+
+def resolve_engine(base_dir):
+    """Find the best available Rijwal engine near the runner."""
+    candidates = [
+        "rijwal_lang_enhanced.py",
+        "rijwal_lang_v0.17.py",
+        "rijwal_lang.py",
+    ]
+    search_dirs = [base_dir, os.path.dirname(base_dir)]
+    for search_dir in search_dirs:
+        for name in candidates:
+            path = os.path.join(search_dir, name)
+            if os.path.exists(path):
+                return path
+    return None
+
+
 def main():
-    # Runner always expects a file
     if len(sys.argv) < 2:
         print("Rijwal_Lang Runner")
-        print("Please double-click a .Rijwal_Lang file")
+        print("Usage: rijwal_lang_runner <file.Rijwal_lang>")
         input("Press Enter to exit...")
         return
 
-    # Location of runner EXE
     exe_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-
-    # Engine MUST be next to runner
-    engine = os.path.join(exe_dir, "rijwal_lang.py")
+    engine = resolve_engine(exe_dir)
     file_to_run = sys.argv[1]
 
-    if not os.path.exists(engine):
-        print("Engine not found:", engine)
-        print("Put rijwal_lang.py in the SAME folder as rijwal_lang_runner.exe")
+    if not engine:
+        print("Engine not found.")
+        print("Expected one of: rijwal_lang_enhanced.py, rijwal_lang_v0.17.py, rijwal_lang.py")
         input("Press Enter to exit...")
         return
 
@@ -31,14 +43,9 @@ def main():
         input("Press Enter to exit...")
         return
 
-    # IMPORTANT:
-    # Call engine directly, NOT sys.executable
-    subprocess.call(
-        ["python", engine, file_to_run],
-        shell=True
-    )
-
+    subprocess.call([sys.executable, engine, file_to_run])
     input("\nPress Enter to close...")
+
 
 if __name__ == "__main__":
     main()

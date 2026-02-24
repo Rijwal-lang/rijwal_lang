@@ -4,87 +4,123 @@ Rijwal_Lang Web Server
 Serves the IDE and executes Rijwal_Lang code
 """
 
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 import os
 import sys
 import subprocess
 import tempfile
 import json
 from pathlib import Path
+from rijwal_ai_assistant import AIAssistant
+
+try:
+    from rijwal_lang_enhanced import BUILTIN_DOCS
+except Exception:
+    BUILTIN_DOCS = {}
 
 app = Flask(__name__)
+IDE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ide")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 # Get the directory of the engine
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
+AI_ASSISTANT = AIAssistant(provider='openai')
 
 @app.route('/')
 def index():
-    """Serve the IDE"""
-    return render_template('index.html')
+    """Serve the modern IDE"""
+    return send_from_directory(IDE_DIR, 'index.html')
+
+@app.route('/legacy')
+def legacy_ide():
+    """Serve legacy IDE with games."""
+    return send_from_directory(SCRIPT_DIR, 'ide_with_games.html')
+
+@app.route('/idle')
+def idle_info():
+    """Expose IDLE launcher information."""
+    return jsonify({
+        'name': 'Rijwal_Lang IDLE',
+        'launch': f'{sys.executable} rijwal_idle.py',
+        'description': 'Interactive shell for quick Rijwal_Lang testing.'
+    })
+
+@app.route('/ide/<path:asset_path>')
+def ide_assets(asset_path):
+    """Serve modern IDE static assets (JS/CSS)."""
+    return send_from_directory(IDE_DIR, asset_path)
+
+def normalize_engine_output(lines):
+    """Remove runtime banner/noise lines from engine output."""
+    cleaned = []
+    for line in lines:
+        if line.startswith('[Rijwal_Lang] 🚀'):
+            continue
+        if line.startswith('[Rijwal_Lang] ✅ Completed'):
+            continue
+        if line.strip() == '':
+            continue
+        cleaned.append(line)
+    return cleaned
+
+
+def run_rijwal_code(code, filename='temp.Rijwal_lang', timeout=30):
+    """Run Rijwal code and return normalized result dict."""
+    if not code.strip():
+        return {'success': False, 'error': 'No code provided'}
+
+    safe_prefix = Path(filename).stem[:20] if filename else 'temp'
+    with tempfile.NamedTemporaryFile(
+        mode='w',
+        prefix=f'{safe_prefix}_',
+        suffix='.Rijwal_lang',
+        delete=False,
+        encoding='utf-8'
+    ) as f:
+        f.write(code)
+        temp_path = f.name
+
+    try:
+        result = subprocess.run(
+            [sys.executable, ENGINE_PATH, temp_path],
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
+
+        output_lines = result.stdout.strip().split('\n') if result.stdout else []
+        output_lines = normalize_engine_output(output_lines)
+        error_lines = result.stderr.strip().split('\n') if result.stderr else []
+
+        if result.returncode == 0:
+            return {'success': True, 'output': output_lines}
+
+        return {
+            'success': False,
+            'error': error_lines[0] if error_lines else 'Unknown error',
+            'details': '\n'.join(error_lines),
+            'output': output_lines,
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            'success': False,
+            'error': f'Code execution timeout (>{timeout} seconds)',
+            'details': 'Your code is taking too long to execute',
+        }
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
 
 @app.route('/api/execute', methods=['POST'])
 def execute_code():
     """Execute Rijwal_Lang code"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         code = data.get('code', '')
         filename = data.get('filename', 'temp.Rijwal_lang')
-        
-        if not code.strip():
-            return jsonify({
-                'success': False,
-                'error': 'No code provided'
-            })
-        
-        # Create temporary file
-        with tempfile.NamedTemporaryFile(
-            mode='w',
-            suffix='.Rijwal_lang',
-            delete=False,
-            encoding='utf-8'
-        ) as f:
-            f.write(code)
-            temp_path = f.name
-        
-        try:
-            # Run the code
-            result = subprocess.run(
-                [sys.executable, ENGINE_PATH, temp_path],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            # Parse output
-            output_lines = result.stdout.strip().split('\n') if result.stdout else []
-            error_lines = result.stderr.strip().split('\n') if result.stderr else []
-            
-            if result.returncode == 0:
-                return jsonify({
-                    'success': True,
-                    'output': output_lines
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': error_lines[0] if error_lines else 'Unknown error',
-                    'details': '\n'.join(error_lines)
-                })
-        
-        finally:
-            # Cleanup
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-    
-    except subprocess.TimeoutExpired:
-        return jsonify({
-            'success': False,
-            'error': 'Code execution timeout (>30 seconds)',
-            'details': 'Your code is taking too long to execute'
-        })
-    
+        return jsonify(run_rijwal_code(code, filename=filename, timeout=30))
     except Exception as e:
         return jsonify({
             'success': False,
@@ -149,6 +185,11 @@ def load_file():
 @app.route('/api/docs', methods=['GET'])
 def get_docs():
     """Get language documentation"""
+    builtin_functions = [
+        {'name': name, 'description': desc}
+        for name, desc in BUILTIN_DOCS.items()
+    ]
+
     docs = {
         'version': '0.13',
         'statements': [
@@ -195,23 +236,91 @@ def get_docs():
                 'example': 'Import "utils.RL"'
             }
         ],
-        'builtin_functions': [
-            {'name': 'len(x)', 'description': 'Length of string'},
-            {'name': 'type(x)', 'description': 'Get type of value'},
-            {'name': 'abs(x)', 'description': 'Absolute value'},
-            {'name': 'max(a, b, ...)', 'description': 'Maximum value'},
-            {'name': 'min(a, b, ...)', 'description': 'Minimum value'},
-            {'name': 'round(x)', 'description': 'Round number'},
-            {'name': 'str(x)', 'description': 'Convert to string'},
-            {'name': 'int(x)', 'description': 'Convert to integer'},
-            {'name': 'float(x)', 'description': 'Convert to float'},
-            {'name': 'upper(s)', 'description': 'Uppercase string'},
-            {'name': 'lower(s)', 'description': 'Lowercase string'},
-            {'name': 'split(s, sep)', 'description': 'Split string'},
-            {'name': 'reverse(x)', 'description': 'Reverse string or list'},
-        ]
+        'builtin_functions': builtin_functions
     }
     return jsonify(docs)
+
+
+
+
+
+@app.route('/api/terminal', methods=['POST'])
+def terminal_command():
+    """Custom Rijwal terminal command endpoint."""
+    try:
+        data = request.get_json() or {}
+        command = (data.get('command') or '').strip()
+        command_lower = command.lower()
+        current_code = data.get('code', '')
+
+        if not command:
+            return jsonify({'success': False, 'error': 'No terminal command provided'}), 400
+
+        if command_lower == 'help':
+            return jsonify({'success': True, 'output': [
+                'Rijwal Terminal Commands:',
+                '  help        Show this help',
+                '  run         Run current editor code',
+                '  version     Show language version',
+                '  docs        Show docs endpoint',
+                '  health      Show API health endpoint',
+                '  clear       Clear terminal output (client side)',
+                '  Any other text is executed as Rijwal code snippet.'
+            ]})
+
+        if command_lower == 'version':
+            return jsonify({'success': True, 'output': ['Rijwal_Lang terminal v1 (engine v0.13)']})
+
+        if command_lower == 'docs':
+            return jsonify({'success': True, 'output': ['Open docs API: /api/docs']})
+
+        if command_lower == 'health':
+            return jsonify({'success': True, 'output': ['Open health API: /api/health']})
+
+        if command_lower == 'run':
+            return jsonify(run_rijwal_code(current_code, filename='terminal_run.Rijwal_lang', timeout=30))
+
+        if command_lower == 'clear':
+            return jsonify({'success': True, 'output': []})
+
+        snippet = command
+        if not snippet.lower().startswith(('when program starts', 'function ', 'every ', 'import ', 'python:', 'js:', 'print ', 'let ', 'input ')):
+            snippet = f'When Program Starts:\n    {command}'
+
+        return jsonify(run_rijwal_code(snippet, filename='terminal_snippet.Rijwal_lang', timeout=20))
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai-assist', methods=['POST'])
+def ai_assist():
+    """AI assistant endpoint for IDE buddy."""
+    try:
+        data = request.get_json() or {}
+        prompt = data.get('prompt', '').strip()
+        code = data.get('code', '')
+
+        if not prompt:
+            return jsonify({'success': False, 'error': 'No prompt provided'}), 400
+
+        result = AI_ASSISTANT.chat(prompt, code_context=code)
+        return jsonify({
+            'success': True,
+            'response': result.get('response', ''),
+            'provider': result.get('provider', 'mock'),
+            'model': result.get('model', 'unknown')
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Simple health endpoint for IDE and IDLE integrations."""
+    return jsonify({
+        'success': True,
+        'engine_exists': os.path.exists(ENGINE_PATH),
+        'ide_exists': os.path.exists(os.path.join(IDE_DIR, 'index.html')),
+        'idle_exists': os.path.exists(os.path.join(SCRIPT_DIR, 'rijwal_idle.py')),
+    })
 
 @app.errorhandler(404)
 def not_found(error):
