@@ -25,7 +25,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 # Get the directory of the engine
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE_PATH = os.path.join(SCRIPT_DIR, 'rijwal_lang_enhanced.py')
-AI_ASSISTANT = AIAssistant(provider='openai')
+AI_ASSISTANT = AIAssistant(provider='local')
 MISSION_STATEMENT = "Rijwal is the fastest way for beginners to go from idea → working code with AI help."
 
 @app.route('/')

@@ -60,6 +60,18 @@ Click **▶️ Run Code** → You're coding! 🎉
 
 ---
 
+
+## ✅ Release Confidence Suite (Run on every change)
+
+Before each release, run:
+
+```bash
+python -m py_compile ide_server.py rijwal_ai_assistant.py
+python scripts/release_confidence_suite.py
+```
+
+If the suite fails, **do not release** until fixed.
+
 ## Features
 
 ### ✨ Core Language Features
@@ -80,7 +92,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 - 💾 Save/load projects
 - 📚 Built-in documentation
 - 🎓 Code examples
-- 🤖 Draggable AI Buddy (LLM-backed with safe fallback)
+- 🤖 Draggable AI Buddy (embedded mini local model + optional API providers)
 - ⌨️ Custom Rijwal Terminal tab inside IDE
 - 🧬 Evolution Lab for self-evolving language/AI roadmap
 
