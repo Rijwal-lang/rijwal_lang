@@ -10,6 +10,7 @@ import sys
 import subprocess
 import tempfile
 import json
+import stat
 from pathlib import Path
 from rijwal_ai_assistant import AIAssistant
 
@@ -113,6 +114,60 @@ def run_rijwal_code(code, filename='temp.Rijwal_lang', timeout=30):
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
+
+
+
+def compile_rijwal_to_python(code):
+    """Compile a small Rijwal subset to Python + IR instructions."""
+    py_lines = ["# Auto-generated from Rijwal_Lang", "def main():"]
+    ir = []
+    in_start = False
+
+    for raw in code.splitlines():
+        stripped = raw.strip()
+        low = stripped.lower()
+        if not stripped or stripped.startswith('#'):
+            continue
+
+        if low.startswith('when program starts'):
+            in_start = True
+            ir.append({'op': 'START_BLOCK'})
+            continue
+
+        if not in_start:
+            continue
+
+        if low.startswith('print '):
+            expr = stripped[6:].strip()
+            py_lines.append(f"    print({expr})")
+            ir.append({'op': 'PRINT', 'arg': expr})
+            continue
+
+        if low.startswith('let '):
+            rest = stripped[4:]
+            if '=' in rest:
+                name, expr = rest.split('=', 1)
+                name = name.strip()
+                expr = expr.strip()
+                py_lines.append(f"    {name} = {expr}")
+                ir.append({'op': 'LET', 'name': name, 'expr': expr})
+            continue
+
+        # fallback as comment for unsupported commands
+        py_lines.append(f"    # Unsupported in tiny compiler: {stripped}")
+        ir.append({'op': 'UNSUPPORTED', 'raw': stripped})
+
+    if len(py_lines) == 2:
+        py_lines.append("    pass")
+
+    py_lines.extend(["", "if __name__ == '__main__':", "    main()"])
+    return {'python_code': '\n'.join(py_lines), 'ir': ir}
+
+
+def ensure_exports_dir():
+    exports_dir = os.path.join(SCRIPT_DIR, 'exports')
+    os.makedirs(exports_dir, exist_ok=True)
+    return exports_dir
 
 @app.route('/api/execute', methods=['POST'])
 def execute_code():
@@ -245,6 +300,65 @@ def get_docs():
 
 
 
+
+
+
+@app.route('/api/cloud/execute', methods=['POST'])
+def cloud_execute_code():
+    """Cloud-style execution alias (same engine, higher timeout)."""
+    try:
+        data = request.get_json() or {}
+        code = data.get('code', '')
+        filename = data.get('filename', 'cloud_job.rjwl')
+        return jsonify(run_rijwal_code(code, filename=filename, timeout=45))
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/compile', methods=['POST'])
+def compile_code():
+    """Compile Rijwal source to tiny Python target + IR."""
+    try:
+        data = request.get_json() or {}
+        code = data.get('code', '')
+        if not code.strip():
+            return jsonify({'success': False, 'error': 'No code provided'}), 400
+
+        result = compile_rijwal_to_python(code)
+        return jsonify({'success': True, **result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/export/executable', methods=['POST'])
+def export_executable():
+    """Export a runnable Python script generated from Rijwal code."""
+    try:
+        data = request.get_json() or {}
+        code = data.get('code', '')
+        name = (data.get('name') or 'rijwal_export').strip()
+        if not code.strip():
+            return jsonify({'success': False, 'error': 'No code provided'}), 400
+
+        safe_name = ''.join(ch for ch in name if ch.isalnum() or ch in ('_', '-')).strip('_-') or 'rijwal_export'
+        compiled = compile_rijwal_to_python(code)
+        exports_dir = ensure_exports_dir()
+        out_path = os.path.join(exports_dir, f"{safe_name}.py")
+
+        with open(out_path, 'w', encoding='utf-8') as f:
+            f.write(compiled['python_code'])
+
+        mode = os.stat(out_path).st_mode
+        os.chmod(out_path, mode | stat.S_IXUSR)
+
+        return jsonify({
+            'success': True,
+            'path': out_path,
+            'python_code': compiled['python_code'],
+            'note': 'Run with: python ' + out_path
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/terminal', methods=['POST'])
 def terminal_command():

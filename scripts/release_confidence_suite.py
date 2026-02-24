@@ -53,6 +53,29 @@ def main() -> int:
         assert_true(j.get('success') is True, f"execute failed: {j}")
         assert_true('suite' in (j.get('output') or []), f"unexpected output: {j.get('output')}")
 
+
+    def t_cloud_execute() -> None:
+        r = client.post('/api/cloud/execute', json={'code': 'When Program Starts:\n    Print "cloud"', 'filename': 'job.rjwl'})
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"cloud execute failed: {j}")
+        assert_true('cloud' in (j.get('output') or []), f"unexpected cloud output: {j.get('output')}")
+
+    def t_compile() -> None:
+        r = client.post('/api/compile', json={'code': 'When Program Starts:\n    Let x = 2\n    Print x'})
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"compile failed: {j}")
+        assert_true('python_code' in j and 'def main' in j['python_code'], 'python_code missing')
+        assert_true(isinstance(j.get('ir'), list), 'ir missing')
+
+    def t_export() -> None:
+        r = client.post('/api/export/executable', json={'name': 'suite_export', 'code': 'When Program Starts:\n    Print "export"'})
+        j = r.get_json() or {}
+        assert_true(r.status_code == 200, f"status={r.status_code}")
+        assert_true(j.get('success') is True, f"export failed: {j}")
+        assert_true(bool(j.get('path')), 'export path missing')
+
     def t_terminal() -> None:
         help_r = client.post('/api/terminal', json={'command': 'help', 'code': ''})
         help_j = help_r.get_json() or {}
@@ -84,6 +107,9 @@ def main() -> int:
         ('health', t_health),
         ('docs', t_docs),
         ('execute', t_execute),
+        ('cloud_execute', t_cloud_execute),
+        ('compile', t_compile),
+        ('export', t_export),
         ('terminal', t_terminal),
         ('ai_assist', t_ai_assist),
         ('evolve', t_evolve),

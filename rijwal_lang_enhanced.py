@@ -26,7 +26,7 @@ BUILTIN_FUNCS = {}
 # ================ CONSTANTS ================
 
 VERSION = "0.13"
-EXTENSIONS = ['.Rijwal_lang', '.Rijwal_Lang', '.RL', '.rl']
+EXTENSIONS = ['.Rijwal_lang', '.Rijwal_Lang', '.RL', '.rl', '.rjwl']
 
 # ================ ERROR HANDLING ================
 

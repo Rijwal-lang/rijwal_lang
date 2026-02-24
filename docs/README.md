@@ -48,6 +48,9 @@ Then open: `http://localhost:5000`
 - IDLE info API: `/idle`
 - Terminal API: `/api/terminal`
 - Evolution API: `/api/evolve`
+- Cloud Execute API: `/api/cloud/execute`
+- Compile API: `/api/compile`
+- Executable Export API: `/api/export/executable`
 
 ### 2. Write Your First Program
 
@@ -58,6 +61,8 @@ When Program Starts:
 
 Click **▶️ Run Code** → You're coding! 🎉
 
+Custom file format is supported too: `.rjwl` (next-gen Rijwal project file extension).
+
 ---
 
 
@@ -66,7 +71,7 @@ Click **▶️ Run Code** → You're coding! 🎉
 Before each release, run:
 
 ```bash
-python -m py_compile ide_server.py rijwal_ai_assistant.py
+python -m py_compile ide_server.py rijwal_ai_assistant.py scripts/release_confidence_suite.py
 python scripts/release_confidence_suite.py
 ```
 
@@ -95,6 +100,8 @@ If the suite fails, **do not release** until fixed.
 - 🤖 Draggable AI Buddy (embedded mini local model + optional API providers)
 - ⌨️ Custom Rijwal Terminal tab inside IDE
 - 🧬 Evolution Lab for self-evolving language/AI roadmap
+- ☁️ Cloud execution endpoint
+- 🛠️ Tiny compiler + executable export
 
 ### 🛠️ Built-in Functions
 ```rijwal
