@@ -32,26 +32,16 @@ Rijwal_Lang is a **beginner-friendly programming language** designed for young d
 
 **Option A: Using Pre-built Executable (Windows)**
 ```
-1. Download rijwal_lang_setup.exe
-2. Run the installer
-3. Open Rijwal_Lang IDE from your desktop
-4. Start coding!
+1. Run the installer
+2. use notepad or any method to code
 ```
 
-**Option B: Using Python**
-```bash
-python ide_server.py
+**potion B: cmd**
 ```
-Then open: `http://localhost:5000`
-
-### 2. Write Your First Program
-
-```rijwal
-When Program Starts:
-    Print "Hello, World!"
+1. run the installer
+2. go to cmd and type "rij"
 ```
-
-Click **▶️ Run Code** → You're coding! 🎉
+You're coding! 🎉
 
 ---
 
@@ -138,17 +128,9 @@ See more examples in the `/examples` folder!
 ### Requirements
 - **Windows, Mac, or Linux**
 - **Python 3.6+** (if running from source)
-- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 - **(Optional) Node.js** for JavaScript blocks
 
-### Method 1: Windows Installer (Easiest)
-```
-1. Download: rijwal_lang_setup.exe
-2. Double-click to install
-3. Run Rijwal_Lang IDE from Start Menu
-```
-
-### Method 2: Python (Any OS)
+### Method 1: Python (Any OS)
 ```bash
 # Download or clone the project
 cd rijwal_lang
@@ -162,52 +144,30 @@ python ide_server.py
 # Open your browser
 http://localhost:5000
 ```
-
-### Method 3: Docker (Advanced)
-```bash
-docker build -t rijwal_lang .
-docker run -p 5000:5000 rijwal_lang
-```
-
 ---
 
 ## Documentation
-
-### 📚 Available Docs
-- **[TUTORIAL.md](TUTORIAL.md)** - Step-by-step lessons (recommended!)
-- **[LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md)** - Complete language guide
-- **IDE Help Tab** - Built-in quick reference
 
 ### Getting Help
 - 📖 Check the tutorial
 - 🔍 Look at examples folder
 - ❓ Read the language reference
 - 🐛 Check error messages
-
----
-
-## Project Structure
-
 ```
-rijwal_lang/
-├── ide/                    # Web IDE
-│   ├── index.html         # Main interface
-│   ├── style.css          # Styling
-│   └── editor.js          # Frontend logic
-├── ide_server.py          # Python backend server
-├── rijwal_lang_enhanced.py # Language engine (v0.13)
-├── runner/                # Command-line runner
-├── examples/              # Sample programs
-├── TUTORIAL.md            # Beginner tutorial
-├── LANGUAGE_REFERENCE.md  # Complete docs
-└── README.md              # This file
 ```
 
 ---
 
 ## Version History
 
-### v0.13 (Latest)
+### v2.0 (latest)
+- most features
+- explore it yourself to be more excited
+- check the trijwal_lang.py in dist for more information
+
+### v1.0
+-was latest but not now
+### v0.13
 🎉 **Major Release!**
 - ✨ Complete web-based IDE
 - ✨ 13 built-in functions
@@ -271,11 +231,6 @@ Import "utils.RL"
 
 ## Troubleshooting
 
-### IDE won't open
-- Check Python version: `python --version` (needs 3.6+)
-- Try different port: Edit `ide_server.py` line with `port=5000`
-- Check if port 5000 is in use
-
 ### Code won't run
 - Check indentation (spaces/tabs)
 - Make sure functions are defined before use
@@ -330,7 +285,7 @@ Use freely, but give credit! ❤️
 ✅ Yes! Do whatever you want with your code.
 
 ### Can I modify Rijwal_Lang itself?
-✅ Yes! It's open-source. Just give credit.
+✅ Yes! It's open-source. Just give credit and follow license
 
 ### What can I build with Rijwal_Lang?
 - 🎮 Games (with extensions)
