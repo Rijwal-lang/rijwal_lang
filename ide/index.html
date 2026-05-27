@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rijwal_Lang IDE - v0.12</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/ide/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
 </head>
@@ -14,7 +14,7 @@
         <header class="header">
             <div class="logo">
                 <h1>🚀 Rijwal_Lang IDE</h1>
-                <p>v0.12 - Write Code, See Magic</p>
+                <p>Rijwal is the fastest way for beginners to go from idea → working code with AI help.</p>
             </div>
             <div class="header-buttons">
                 <button id="newFile" class="btn btn-primary">📄 New</button>
@@ -65,6 +65,8 @@ When Program Starts:
                     <button class="tab-btn active" data-tab="output">📤 Output</button>
                     <button class="tab-btn" data-tab="help">❓ Help</button>
                     <button class="tab-btn" data-tab="docs">📚 Docs</button>
+                    <button class="tab-btn" data-tab="terminal">⌨️ Terminal</button>
+                    <button class="tab-btn" data-tab="evolution">🧬 Evolution</button>
                 </div>
 
                 <!-- Output Console -->
@@ -132,6 +134,35 @@ When Program Starts:
                         </details>
                     </div>
                 </div>
+
+                <!-- Terminal -->
+                <div id="terminal" class="tab-content">
+                    <div class="terminal-panel">
+                        <div id="terminalOutput" class="terminal-output">
+                            <div class="terminal-line">Rijwal Terminal ready. Type <code>help</code> to begin.</div>
+                        </div>
+                        <div class="terminal-input-wrap">
+                            <span class="terminal-prompt">rijwal&gt;</span>
+                            <input id="terminalInput" class="terminal-input" placeholder="run | help | Print &quot;Hello&quot;" />
+                            <button id="terminalSend" class="btn btn-success">Run</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evolution -->
+                <div id="evolution" class="tab-content">
+                    <div class="evolution-panel">
+                        <h3>🧬 Self-Evolving Rijwal Lab</h3>
+                        <p class="evolution-mission">Rijwal is the fastest way for beginners to go from idea → working code with AI help.</p>
+                        <textarea id="evolutionGoals" class="evolution-goals" placeholder="Describe what should evolve next (language, AI buddy, IDE, onboarding)..."></textarea>
+                        <div class="evolution-actions">
+                            <button id="evolutionGenerate" class="btn btn-success">Generate Evolution Plan</button>
+                        </div>
+                        <pre id="evolutionOutput" class="evolution-output">No evolution plan generated yet.</pre>
+                    </div>
+                </div>
+
+
             </div>
         </div>
 
@@ -141,7 +172,24 @@ When Program Starts:
         </footer>
     </div>
 
+
+
+    <div id="aiBuddy" class="ai-buddy" aria-label="Draggable AI Buddy">
+        <div id="aiBuddyHeader" class="ai-buddy-header">
+            <span id="aiWalker" class="ai-walker" title="Drag me">🤖</span>
+            <span>Rijwal AI Buddy</span>
+            <button id="aiBuddyToggle" class="ai-buddy-toggle" title="Minimize AI Buddy">—</button>
+        </div>
+        <div id="aiBuddyChat" class="ai-buddy-chat">
+            <div class="ai-line ai">Hi! I can explain code, suggest fixes, and generate snippets.</div>
+        </div>
+        <div class="ai-buddy-input-wrap">
+            <input id="aiBuddyInput" class="ai-buddy-input" placeholder="Ask AI about your code..." />
+            <button id="aiBuddySend" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+
     <input type="file" id="fileInput" style="display: none;" accept=".Rijwal_lang,.RL,.txt">
-    <script src="editor.js"></script>
+    <script src="/ide/editor.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-FBAL-green)
 ![Status](https://img.shields.io/badge/status-Production-brightgreen)
 
-**A beautiful, easy-to-learn programming language with a modern web-based IDE**
+**Rijwal is the fastest way for beginners to go from idea → working code with AI help.**
 
 [🎓 Tutorial](#tutorial) • [📚 Language Reference](#documentation) • [💻 Examples](#examples) • [🚀 Installation](#installation)
 
@@ -43,6 +43,19 @@ Rijwal_Lang is a **beginner-friendly programming language** designed for young d
 python ide_server.py
 ```
 Then open: `http://localhost:5000`
+- Modern IDE: `/`
+- Legacy IDE: `/legacy`
+- IDLE info API: `/idle`
+- Terminal API: `/api/terminal`
+- Evolution API: `/api/evolve`
+- Cloud Execute API: `/api/cloud/execute`
+- Compile API: `/api/compile`
+- Executable Export API: `/api/export/executable`
+- Plugins API: `/api/plugins/list`, `/api/plugins/install`, `/api/plugins/auto-update`
+- AI Prompt Update API: `/api/ai/prompt`
+- VM Transition APIs: `/api/vm/compile`, `/api/vm/execute`
+- Collaboration APIs: `/api/collab/session`, `/api/collab/op`
+- Combined capabilities API: `/api/capabilities`
 
 ### 2. Write Your First Program
 
@@ -53,7 +66,21 @@ When Program Starts:
 
 Click **▶️ Run Code** → You're coding! 🎉
 
+Custom file format is supported too: `.rjwl` (next-gen Rijwal project file extension).
+
 ---
+
+
+## ✅ Release Confidence Suite (Run on every change)
+
+Before each release, run:
+
+```bash
+python -m py_compile ide_server.py rijwal_ai_assistant.py scripts/release_confidence_suite.py
+python scripts/release_confidence_suite.py
+```
+
+If the suite fails, **do not release** until fixed.
 
 ## Features
 
@@ -75,10 +102,20 @@ Click **▶️ Run Code** → You're coding! 🎉
 - 💾 Save/load projects
 - 📚 Built-in documentation
 - 🎓 Code examples
+- 🤖 Draggable AI Buddy (embedded mini local model + optional API providers)
+- ⌨️ Custom Rijwal Terminal tab inside IDE
+- 🧬 Evolution Lab for self-evolving language/AI roadmap
+- ☁️ Cloud execution endpoint
+- 🛠️ Tiny compiler + executable export
+- 🧩 Extension / plugin API (self-growing local catalog)
+- 🧠 AI prompt self-update and inline AI syntax support
+- 🤝 Multiplayer collaboration session API (optimistic revision flow)
+- 🧱 Interpreter → tiny VM transition path (`/api/vm/*`)
+- 🧬 Adaptive syntax rules (`Adapt Syntax "old" => "new"`) persisted by runtime
 
 ### 🛠️ Built-in Functions
 ```rijwal
-len(x)              # String length
+len(x)              # Length of string/container
 type(x)             # Get type
 abs(x)              # Absolute value
 max(a, b, ...)      # Maximum
@@ -89,6 +126,26 @@ upper(s), lower(s)  # Case conversion
 split(s, sep)       # Split string
 reverse(x)          # Reverse
 sort(list)          # Sort list
+contains(list_or_text, x) # Membership check
+replace(s, old, new) # Replace text
+startswith(s, prefix) # Starts with
+endswith(s, suffix)  # Ends with
+append(list, x)      # Return list with appended item
+sum(a, b, ...)       # Sum numbers
+keys(dict_obj)       # Dictionary keys
+values(dict_obj)     # Dictionary values
+clamp(x, min, max)   # Clamp number to range
+sqrt(x), pow(a, b)   # Math helpers
+randint(a, b)        # Random integer
+choice(items)        # Random item
+shuffle(list)        # Shuffled copy
+trim(s), title(s)    # String cleanup
+first(x), last(x)    # Sequence edges
+take(x, n), drop(x,n)# Sequence slices
+unique(list)         # Remove duplicates
+count(x, v), index(x,v) # Count/find
+now(), sleep(sec)    # Time helpers
+iif(cond, a, b)      # Inline conditional
 ```
 
 ---
@@ -202,6 +259,14 @@ rijwal_lang/
 ├── LANGUAGE_REFERENCE.md  # Complete docs
 └── README.md              # This file
 ```
+
+---
+
+## Roadmap Highlights
+
+- ✅ Expanded built-in function toolkit for math, random, text cleaning, list utilities, and time helpers.
+- ✅ IDE docs endpoint now auto-syncs with runtime built-in docs to avoid drift.
+- 🔜 Planned next: native `If/Else`, loops, and richer data-structure syntax.
 
 ---
 
@@ -393,3 +458,10 @@ Made with ❤️ for young developers
 **Happy Coding!** ✨
 
 </div>
+
+
+### 3. Open IDLE (Interactive Shell)
+```bash
+python rijwal_idle.py
+```
+Use `:exit` to quit.

@@ -16,7 +16,7 @@
 ; ============================================================================
 
 Name "Rijwal_Lang IDE v0.17"
-OutFile "RijwalLang-Setup-v0.17.exe"
+OutFile "rijwal_lang_setup.exe"
 InstallDir "$PROGRAMFILES\RijwalLang"
 InstallDirRegKey HKCU "Software\RijwalLang" ""
 
@@ -57,13 +57,18 @@ Section "Core Files (required)" SecCore
   SectionIn RO  ; Read-only, always selected
   SetOutPath "$INSTDIR"
   
-  ; Copy executable
+  ; Copy executable and launch tools
   File "build_exe\dist\RijwalIDE.exe"
+  File "ide_server.py"
+  File "rijwal_lang_enhanced.py"
+  File "rijwal_idle.py"
   
   ; Create shortcuts
   CreateDirectory "$SMPROGRAMS\Rijwal_Lang IDE"
   CreateShortCut "$SMPROGRAMS\Rijwal_Lang IDE\Rijwal_Lang IDE.lnk" "$INSTDIR\RijwalIDE.exe"
   CreateShortCut "$DESKTOP\Rijwal_Lang IDE.lnk" "$INSTDIR\RijwalIDE.exe"
+  CreateShortCut "$SMPROGRAMS\Rijwal_Lang IDE\Rijwal_Lang IDE (Web).lnk" "$INSTDIR\RijwalIDE.exe"
+  CreateShortCut "$SMPROGRAMS\Rijwal_Lang IDE\Rijwal_Lang IDLE.lnk" "$SYSDIR\cmd.exe" "/k python $"$INSTDIR\rijwal_idle.py$""
   
   ; Write registry entries
   WriteRegStr HKCU "Software\RijwalLang" "" "$INSTDIR"
@@ -80,18 +85,26 @@ Section "Documentation" SecDocs
   SetOutPath "$INSTDIR"
   
   ; Copy documentation
-  File "README.md"
-  File "RIJWAL_v0.17_ECOSYSTEM.md"
-  File "GAMES_AND_SOURCECODE.md"
-  File "SOURCECODE_COOKBOOK.md"
-  
+  SetOutPath "$INSTDIR\docs"
+  File "docs\README.md"
+  File "docs\QUICK_START.md"
+  File "docs\LANGUAGE_REFERENCE.md"
+
   ; Create documentation shortcut
-  CreateShortCut "$SMPROGRAMS\Rijwal_Lang IDE\Documentation.lnk" "$INSTDIR\README.md"
+  CreateShortCut "$SMPROGRAMS\Rijwal_Lang IDE\Documentation.lnk" "$INSTDIR\docs\README.md"
 SectionEnd
 
-Section "Examples" SecExamples
+Section "Examples + IDE Assets" SecExamples
   SetOutPath "$INSTDIR\examples"
   File "examples\*.Rijwal_lang"
+
+  SetOutPath "$INSTDIR\ide"
+  File "ide\index.html"
+  File "ide\editor.js"
+  File "ide\style.css"
+
+  SetOutPath "$INSTDIR"
+  File "ide_with_games.html"
 SectionEnd
 
 ; ============================================================================
@@ -102,14 +115,14 @@ Section "Uninstall"
   ; Remove executable
   Delete "$INSTDIR\RijwalIDE.exe"
   
-  ; Remove documentation
-  Delete "$INSTDIR\README.md"
-  Delete "$INSTDIR\RIJWAL_v0.17_ECOSYSTEM.md"
-  Delete "$INSTDIR\GAMES_AND_SOURCECODE.md"
-  Delete "$INSTDIR\SOURCECODE_COOKBOOK.md"
-  
-  ; Remove examples
+  ; Remove documentation and IDE assets
+  RMDir /r "$INSTDIR\docs"
   RMDir /r "$INSTDIR\examples"
+  RMDir /r "$INSTDIR\ide"
+  Delete "$INSTDIR\ide_with_games.html"
+  Delete "$INSTDIR\ide_server.py"
+  Delete "$INSTDIR\rijwal_lang_enhanced.py"
+  Delete "$INSTDIR\rijwal_idle.py"
   
   ; Remove shortcuts
   Delete "$SMPROGRAMS\Rijwal_Lang IDE\*.*"

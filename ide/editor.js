@@ -246,6 +246,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.add('active');
         const tabId = btn.dataset.tab;
         document.getElementById(tabId).classList.add('active');
+        if (tabId === 'terminal' && aiBuddy) {
+            aiBuddy.classList.add('collapsed');
+            aiBuddy.style.top = '20px';
+            aiBuddy.style.right = '20px';
+            aiBuddy.style.left = 'auto';
+            aiBuddy.style.bottom = 'auto';
+            if (aiBuddyToggle) aiBuddyToggle.textContent = '+';
+        }
     });
 });
 
@@ -259,3 +267,185 @@ document.addEventListener('DOMContentLoaded', () => {
     addConsoleOutput('✨ Rijwal_Lang IDE Ready!', 'info');
     addConsoleOutput(`📄 Editing: ${currentFile}`, 'info');
 });
+
+
+// ========== AI BUDDY ==========
+const aiBuddy = document.getElementById('aiBuddy');
+const aiBuddyHeader = document.getElementById('aiBuddyHeader');
+const aiBuddyChat = document.getElementById('aiBuddyChat');
+const aiBuddyInput = document.getElementById('aiBuddyInput');
+const aiBuddySend = document.getElementById('aiBuddySend');
+const aiBuddyToggle = document.getElementById('aiBuddyToggle');
+
+function appendAiLine(message, role='ai') {
+    const line = document.createElement('div');
+    line.className = `ai-line ${role}`;
+    line.textContent = message;
+    aiBuddyChat.appendChild(line);
+    aiBuddyChat.scrollTop = aiBuddyChat.scrollHeight;
+}
+
+async function askAiBuddy() {
+    const prompt = aiBuddyInput.value.trim();
+    if (!prompt) return;
+
+    appendAiLine(prompt, 'user');
+    aiBuddyInput.value = '';
+
+    try {
+        const response = await fetch('/api/ai-assist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, code: editor.value })
+        });
+        const data = await response.json();
+        if (data.success) {
+            appendAiLine(data.response, 'ai');
+        } else {
+            appendAiLine('AI error: ' + (data.error || 'unknown'), 'ai');
+        }
+    } catch (error) {
+        appendAiLine('Network error while talking to AI Buddy.', 'ai');
+    }
+}
+
+aiBuddySend.addEventListener('click', askAiBuddy);
+aiBuddyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') askAiBuddy();
+});
+
+
+if (aiBuddyToggle) {
+    aiBuddyToggle.addEventListener('click', () => {
+        aiBuddy.classList.toggle('collapsed');
+        aiBuddyToggle.textContent = aiBuddy.classList.contains('collapsed') ? '+' : '—';
+    });
+}
+
+(function makeBuddyDraggable() {
+    let active = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    aiBuddyHeader.addEventListener('pointerdown', (e) => {
+        active = true;
+        const rect = aiBuddy.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        aiBuddyHeader.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('pointermove', (e) => {
+        if (!active) return;
+        const x = Math.max(0, Math.min(window.innerWidth - aiBuddy.offsetWidth, e.clientX - offsetX));
+        const y = Math.max(0, Math.min(window.innerHeight - aiBuddy.offsetHeight, e.clientY - offsetY));
+        aiBuddy.style.left = `${x}px`;
+        aiBuddy.style.top = `${y}px`;
+        aiBuddy.style.right = 'auto';
+        aiBuddy.style.bottom = 'auto';
+    });
+
+    window.addEventListener('pointerup', () => {
+        active = false;
+        aiBuddyHeader.style.cursor = 'grab';
+    });
+})();
+
+
+// ========== CUSTOM TERMINAL ==========
+const terminalOutput = document.getElementById('terminalOutput');
+const terminalInput = document.getElementById('terminalInput');
+const terminalSend = document.getElementById('terminalSend');
+
+function addTerminalLine(message) {
+    if (!terminalOutput) return;
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.textContent = message;
+    terminalOutput.appendChild(line);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+async function runTerminalCommand() {
+    if (!terminalInput) return;
+    const command = terminalInput.value.trim();
+    if (!command) return;
+
+    addTerminalLine(`> ${command}`);
+    terminalInput.value = '';
+
+    if (command === 'clear') {
+        terminalOutput.innerHTML = '<div class="terminal-line">Terminal cleared.</div>';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/terminal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command, code: editor.value })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            const lines = result.output || [];
+            if (!lines.length) addTerminalLine('OK');
+            lines.forEach((line) => addTerminalLine(line));
+        } else {
+            addTerminalLine('ERROR: ' + (result.error || 'Unknown terminal error'));
+            if (result.details) addTerminalLine(result.details);
+        }
+    } catch (error) {
+        addTerminalLine('ERROR: Terminal request failed - ' + error.message);
+    }
+}
+
+if (terminalSend) {
+    terminalSend.addEventListener('click', runTerminalCommand);
+}
+if (terminalInput) {
+    terminalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') runTerminalCommand();
+    });
+}
+
+
+// ========== EVOLUTION LAB ==========
+const evolutionGoals = document.getElementById('evolutionGoals');
+const evolutionGenerate = document.getElementById('evolutionGenerate');
+const evolutionOutput = document.getElementById('evolutionOutput');
+
+async function generateEvolutionPlan() {
+    if (!evolutionGoals || !evolutionOutput) return;
+    const goals = evolutionGoals.value.trim();
+    if (!goals) {
+        evolutionOutput.textContent = 'Please describe your evolution goals first.';
+        return;
+    }
+
+    evolutionOutput.textContent = 'Generating evolution roadmap...';
+
+    try {
+        const response = await fetch('/api/evolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goals, code: editor.value })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            evolutionOutput.textContent = `Error: ${data.error || 'Unknown error'}`;
+            return;
+        }
+
+        evolutionOutput.textContent = `${data.mission}
+
+${data.plan}`;
+    } catch (err) {
+        evolutionOutput.textContent = `Network error: ${err.message}`;
+    }
+}
+
+if (evolutionGenerate) {
+    evolutionGenerate.addEventListener('click', generateEvolutionPlan);
+}

@@ -18,24 +18,78 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
+
+
+class MiniLanguageModel:
+    """Tiny embedded local language model (rule-based, no external API)."""
+
+    def generate(self, prompt: str, code_context: Optional[str] = None) -> Dict[str, Any]:
+        lower = (prompt or '').lower()
+
+        if any(k in lower for k in ['error', 'fail', 'traceback', 'bug']):
+            content = (
+                "Local Fix Plan:\n"
+                "1) Re-run with minimal snippet.\n"
+                "2) Confirm variable names and function arguments.\n"
+                "3) Use terminal command `help` then `run`.\n"
+                "4) Ask AI buddy: 'explain this error line by line'."
+            )
+        elif any(k in lower for k in ['evolve', 'self-evolving', 'roadmap', 'next generation']):
+            content = (
+                "Local Evolution Roadmap (No API):\n"
+                "- Add one language feature/week + tests.\n"
+                "- Keep execute/terminal/ai/evolve endpoints green.\n"
+                "- Collect 3 beginner feedback notes each release.\n"
+                "- Ship weekly with changelog and examples."
+            )
+        elif any(k in lower for k in ['example', 'sample', 'show']):
+            content = (
+                "Try this snippet:\n"
+                "When Program Starts:\n"
+                "    Let name = \\\"Rijwal\\\"\n"
+                "    Print \\\"Hello, \\\" + name"
+            )
+        else:
+            content = (
+                "Local Assistant:\n"
+                "- Define your goal in one line.\n"
+                "- Ask for one small step.\n"
+                "- Run it in Terminal (`run`).\n"
+                "- Iterate until success."
+            )
+
+        if code_context:
+            content += "\n\nContext received from editor."
+
+        return {
+            'content': content,
+            'usage': {'input_tokens': 0, 'output_tokens': 0},
+            'model': 'mini-local-lm',
+        }
+
+
 class AIAssistant:
     """AI-powered code assistant for the Rijwal IDE"""
     
-    def __init__(self, api_key: Optional[str] = None, provider: str = "claude"):
+    def __init__(self, api_key: Optional[str] = None, provider: str = "local"):
         """
         Initialize AI assistant with API credentials
         
         Args:
             api_key: API key for Claude or OpenAI
-            provider: "claude" or "openai"
+            provider: "local", "claude", or "openai"
         """
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY") or os.getenv("OPENAI_API_KEY")
         self.provider = provider
         self.conversation_history: List[Dict[str, str]] = []
         self.max_history = 20
+        self.local_lm = MiniLanguageModel()
+        self.custom_system_prompt: Optional[str] = None
         
     def _prepare_system_prompt(self) -> str:
         """System prompt for the AI"""
+        if self.custom_system_prompt:
+            return self.custom_system_prompt
         return """You are a helpful code assistant for Rijwal_Lang, a programming language IDE.
 
 You help developers with:
@@ -96,20 +150,52 @@ Built-in functions: 150+. Plugins available: 9 (NumPy, Pandas, Requests, PIL, Ma
             "model": response.get("model", "unknown")
         }
     
+
+
+    def evolve_language(self, goals: str, code_context: Optional[str] = None) -> Dict[str, Any]:
+        """Generate a practical evolution plan for Rijwal language + IDE."""
+        prompt = (
+            "Create a concise self-evolution plan for Rijwal_Lang. "
+            "Return: (1) top 5 next features, (2) top 5 hardening tasks, "
+            "(3) a 7-day execution plan, (4) one sample Rijwal code snippet.\n\n"
+            f"GOALS: {goals}\n\n"
+            f"CODE CONTEXT:\n{code_context or ''}"
+        )
+        result = self.chat(prompt, code_context=code_context)
+        return {
+            "plan": result.get("response", ""),
+            "provider": result.get("provider", self.provider),
+            "model": result.get("model", "unknown"),
+            "timestamp": result.get("timestamp"),
+        }
+
+
+
+    def update_system_prompt(self, new_prompt: str) -> Dict[str, Any]:
+        """Update assistant system prompt dynamically (self-evolving behavior)."""
+        cleaned = (new_prompt or '').strip()
+        if not cleaned:
+            return {'success': False, 'error': 'Prompt cannot be empty'}
+        self.custom_system_prompt = cleaned
+        return {'success': True, 'message': 'System prompt updated'}
+
     def _call_api(self, message: str) -> Dict[str, Any]:
         """
         Call the actual API (Claude or OpenAI)
         Falls back to mock if no API key
         """
+        if self.provider == "local":
+            return self.local_lm.generate(message)
+
         if not self.api_key:
-            return self._mock_response(message)
-        
+            return self.local_lm.generate(message)
+
         if self.provider == "claude":
             return self._call_claude(message)
         elif self.provider == "openai":
             return self._call_openai(message)
         else:
-            return self._mock_response(message)
+            return self.local_lm.generate(message)
     
     def _call_claude(self, message: str) -> Dict[str, Any]:
         """Call Claude API"""
@@ -133,7 +219,7 @@ Built-in functions: 150+. Plugins available: 9 (NumPy, Pandas, Requests, PIL, Ma
                 "model": "claude-3-5-sonnet"
             }
         except Exception as e:
-            return self._mock_response(f"(Claude API error: {str(e)}) Using mock response...")
+            return self.local_lm.generate(f"(Claude API error: {str(e)})")
     
     def _call_openai(self, message: str) -> Dict[str, Any]:
         """Call OpenAI API"""
@@ -159,7 +245,7 @@ Built-in functions: 150+. Plugins available: 9 (NumPy, Pandas, Requests, PIL, Ma
                 "model": "gpt-4"
             }
         except Exception as e:
-            return self._mock_response(f"(OpenAI API error: {str(e)}) Using mock response...")
+            return self.local_lm.generate(f"(OpenAI API error: {str(e)})")
     
     def _mock_response(self, user_message: str) -> Dict[str, Any]:
         """
@@ -229,6 +315,34 @@ Key concepts:
 5. **Games** - 10 games available for breaks!
 
 Start with examples/ and build from there! 🎮"""
+,
+            "evolution": """🧬 **Rijwal Self-Evolution Plan**
+
+1) Language core
+- Add structured control flow (`If/Else`, loops) with beginner-friendly errors
+- Add module packaging and test blocks
+
+2) IDE + terminal quality
+- Keep terminal and runner output deterministic
+- Add starter templates and guided lessons
+
+3) AI Buddy growth
+- Add one-click actions: Explain, Fix, Generate, Next Step
+- Add history-based contextual coaching
+
+4) 7-day solo plan
+- Day 1-2: tests and stability
+- Day 3-4: language ergonomics
+- Day 5: docs + examples
+- Day 6: AI actions and prompts
+- Day 7: release and user feedback
+
+5) Starter snippet
+```rijwal
+When Program Starts:
+    Print "Idea → Plan → Code → Run"
+```
+"""
         }
         
         # Smart response selection
@@ -240,6 +354,8 @@ Start with examples/ and build from there! 🎮"""
             base_response = mock_responses["refactor"]
         elif any(word in lower_msg for word in ["example", "sample", "code", "how"]):
             base_response = mock_responses["example"]
+        elif any(word in lower_msg for word in ["evolution", "self-evolving", "roadmap", "next generation"]):
+            base_response = mock_responses["evolution"]
         elif any(word in lower_msg for word in ["learn", "teach", "explain", "what"]):
             base_response = mock_responses["learn"]
         else:
@@ -287,14 +403,14 @@ class AIAssistantManager:
     _instance: Optional[AIAssistant] = None
     
     @classmethod
-    def get_instance(cls, api_key: Optional[str] = None, provider: str = "claude") -> AIAssistant:
+    def get_instance(cls, api_key: Optional[str] = None, provider: str = "local") -> AIAssistant:
         """Get or create singleton AI assistant"""
         if cls._instance is None:
             cls._instance = AIAssistant(api_key=api_key, provider=provider)
         return cls._instance
     
     @classmethod
-    def set_api_key(cls, api_key: str, provider: str = "claude") -> None:
+    def set_api_key(cls, api_key: str, provider: str = "local") -> None:
         """Update API key"""
         cls._instance = AIAssistant(api_key=api_key, provider=provider)
 
